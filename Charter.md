@@ -19,7 +19,7 @@ etc).
 ## 3. Work Division & Contribution Report
 | Task / Module | Assigned Member (Plan) | Actual Contribution (Final) |
 | :--- | :--- | :--- |
-| **Multi-threaded Server** | Noah Hewert | |
+| **Multi-threaded Server** | Noah Hewitt | |
 | **Socket Networking** | Noah Hewitt | |
 | **Game Implementation** | Dylan Reid | |
 | **GUI Implementation** | Ngoc Kieu Minh Do | |
