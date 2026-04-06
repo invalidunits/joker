@@ -19,7 +19,7 @@ Each card effect:
 - 2: If captured, Force the other player to place first next turn.
 - 3: If captured, Choose a card from the top 5 cards in your deck.
 - 4: Shuffle the opponents deck.
-- 5: If this card loses, swap any card from your hand with a card from the opponents (you do not see their)
+- 5: If captured, swap any card from your hand with a card from the opponents (you do not see their)
 - 6: Always captures anything in it's suite
 - 7: Always captures 9
 - 8: No effect 

@@ -38,8 +38,17 @@ background_mode = 2
 background_color = Color(0, 0, 0.105882354, 1)
 ambient_light_color = Color(0.63801, 0.218451, 0.28361914, 1)
 
+[sub_resource type="Resource" id="Resource_7jktm"]
+script = ExtResource("4_fc0e3")
+suite = -1
+number = 4
+special_index = null
+metadata/_custom_type_script = "uid://brhe14r13f4vc"
+
 [sub_resource type="Resource" id="Resource_fc0e3"]
 script = ExtResource("4_fc0e3")
+number = 2
+special_index = null
 metadata/_custom_type_script = "uid://brhe14r13f4vc"
 
 [node name="Game" type="Node" unique_id=1292748270]
@@ -91,12 +100,22 @@ environment = SubResource("Environment_fc0e3")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=880753776]
 
+[node name="DeckContainer" type="AspectRatioContainer" parent="UI" unique_id=552912058]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="DeckDisplayer1" parent="UI/DeckContainer" unique_id=105394874 instance=ExtResource("3_feb5d")]
+position = Vector2(142, 332)
+frame = 3
+card = SubResource("Resource_7jktm")
+play_speed = null
+
 [node name="Container" type="AspectRatioContainer" parent="UI" unique_id=1271719004]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -261.0
+offset_top = -490.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_feb5d")
@@ -107,168 +126,54 @@ acceleration = 0.5
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
-theme_override_constants/margin_bottom = 120
+theme_override_constants/margin_bottom = 183
 script = ExtResource("1_e2o6t")
-offset = 0.0004559409668653
-card_distance = 40.27
+offset = -0.6
+card_distance = 80.0
 radius = 800.0
 radius_distance = 400.0
 
-[node name="CardDisplayer" parent="UI/Container/CardList" unique_id=105394874 instance=ExtResource("3_feb5d")]
-position = Vector2(-503.35663, 89.10126)
-rotation = -0.6805181
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer2" parent="UI/Container/CardList" unique_id=1550488456 instance=ExtResource("3_feb5d")]
-position = Vector2(-463.08664, 73.82874)
-rotation = -0.61732787
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer3" parent="UI/Container/CardList" unique_id=514960114 instance=ExtResource("3_feb5d")]
-position = Vector2(-422.81665, 60.43186)
-rotation = -0.55685717
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer4" parent="UI/Container/CardList" unique_id=391780746 instance=ExtResource("3_feb5d")]
-position = Vector2(-382.54663, 48.695972)
-rotation = -0.49858502
-frame = 13
-card = SubResource("Resource_fc0e3")
-
 [node name="CardDisplayer5" parent="UI/Container/CardList" unique_id=1882997572 instance=ExtResource("3_feb5d")]
-position = Vector2(-342.27664, 38.459305)
-rotation = -0.44210806
-frame = 13
+position = Vector2(-234.93134, 17.636538)
+rotation = -0.29805776
+frame = 14
 card = SubResource("Resource_fc0e3")
+play_speed = null
 
-[node name="CardDisplayer6" parent="UI/Container/CardList" unique_id=752686528 instance=ExtResource("3_feb5d")]
-position = Vector2(-302.00665, 29.597523)
-rotation = -0.38710403
-frame = 13
+[node name="CardDisplayer6" parent="UI/Container/CardList" unique_id=325569349 instance=ExtResource("3_feb5d")]
+position = Vector2(-154.93134, 7.572847)
+rotation = -0.19489565
+frame = 14
 card = SubResource("Resource_fc0e3")
+play_speed = null
 
-[node name="CardDisplayer7" parent="UI/Container/CardList" unique_id=837972727 instance=ExtResource("3_feb5d")]
-position = Vector2(-261.73663, 22.01391)
-rotation = -0.33330804
-frame = 13
+[node name="CardDisplayer7" parent="UI/Container/CardList" unique_id=309328252 instance=ExtResource("3_feb5d")]
+position = Vector2(-74.931335, 1.7584605)
+rotation = -0.09380166
+frame = 14
 card = SubResource("Resource_fc0e3")
+play_speed = null
 
-[node name="CardDisplayer8" parent="UI/Container/CardList" unique_id=891668402 instance=ExtResource("3_feb5d")]
-position = Vector2(-221.46664, 15.632817)
-rotation = -0.28049704
-frame = 13
+[node name="CardDisplayer8" parent="UI/Container/CardList" unique_id=1484142162 instance=ExtResource("3_feb5d")]
+position = Vector2(5.068667, 0.008028639)
+rotation = 0.006335876
+frame = 14
 card = SubResource("Resource_fc0e3")
+play_speed = null
 
-[node name="CardDisplayer9" parent="UI/Container/CardList" unique_id=104240801 instance=ExtResource("3_feb5d")]
-position = Vector2(-181.19664, 10.3951435)
-rotation = -0.22847848
-frame = 13
+[node name="CardDisplayer9" parent="UI/Container/CardList" unique_id=1942312542 instance=ExtResource("3_feb5d")]
+position = Vector2(85.068665, 2.267891)
+rotation = 0.10653725
+frame = 14
 card = SubResource("Resource_fc0e3")
+play_speed = null
 
-[node name="CardDisplayer10" parent="UI/Container/CardList" unique_id=1071417009 instance=ExtResource("3_feb5d")]
-position = Vector2(-140.92664, 6.2552595)
-rotation = -0.17708234
-frame = 13
+[node name="CardDisplayer10" parent="UI/Container/CardList" unique_id=1619082133 instance=ExtResource("3_feb5d")]
+position = Vector2(165.06866, 8.607507)
+rotation = 0.20782872
+frame = 14
 card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer11" parent="UI/Container/CardList" unique_id=43529733 instance=ExtResource("3_feb5d")]
-position = Vector2(-100.65664, 3.1788056)
-rotation = -0.12615517
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer12" parent="UI/Container/CardList" unique_id=1275187873 instance=ExtResource("3_feb5d")]
-position = Vector2(-60.38664, 1.1411735)
-rotation = -0.07555516
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer13" parent="UI/Container/CardList" unique_id=948873770 instance=ExtResource("3_feb5d")]
-position = Vector2(-20.11664, 0.12648225)
-rotation = -0.025148451
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer14" parent="UI/Container/CardList" unique_id=354071096 instance=ExtResource("3_feb5d")]
-position = Vector2(20.15336, 0.1269445)
-rotation = 0.025194366
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer15" parent="UI/Container/CardList" unique_id=1699985268 instance=ExtResource("3_feb5d")]
-position = Vector2(60.42336, 1.1425638)
-rotation = 0.0756012
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer16" parent="UI/Container/CardList" unique_id=1108233081 instance=ExtResource("3_feb5d")]
-position = Vector2(100.69336, 3.1811347)
-rotation = 0.12620144
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer17" parent="UI/Container/CardList" unique_id=1441685382 instance=ExtResource("3_feb5d")]
-position = Vector2(140.96336, 6.258546)
-rotation = 0.17712899
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer18" parent="UI/Container/CardList" unique_id=1770571552 instance=ExtResource("3_feb5d")]
-position = Vector2(181.23337, 10.399414)
-rotation = 0.22852561
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer19" parent="UI/Container/CardList" unique_id=1852432887 instance=ExtResource("3_feb5d")]
-position = Vector2(221.50336, 15.638105)
-rotation = 0.28054482
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer20" parent="UI/Container/CardList" unique_id=585341588 instance=ExtResource("3_feb5d")]
-position = Vector2(261.77335, 22.020267)
-rotation = 0.3333566
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer21" parent="UI/Container/CardList" unique_id=913838693 instance=ExtResource("3_feb5d")]
-position = Vector2(302.04337, 29.605007)
-rotation = 0.3871536
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer22" parent="UI/Container/CardList" unique_id=1319917881 instance=ExtResource("3_feb5d")]
-position = Vector2(342.31335, 38.467995)
-rotation = 0.44215885
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer23" parent="UI/Container/CardList" unique_id=177019635 instance=ExtResource("3_feb5d")]
-position = Vector2(382.58337, 48.70598)
-rotation = 0.49863732
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer24" parent="UI/Container/CardList" unique_id=209811154 instance=ExtResource("3_feb5d")]
-position = Vector2(422.85336, 60.44329)
-rotation = 0.55691123
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer25" parent="UI/Container/CardList" unique_id=1446373603 instance=ExtResource("3_feb5d")]
-position = Vector2(463.12335, 73.841774)
-rotation = 0.61738414
-frame = 13
-card = SubResource("Resource_fc0e3")
-
-[node name="CardDisplayer26" parent="UI/Container/CardList" unique_id=189746506 instance=ExtResource("3_feb5d")]
-position = Vector2(503.39337, 89.116135)
-rotation = 0.68057716
-frame = 13
-card = SubResource("Resource_fc0e3")
+play_speed = null
 
 [node name="Container2" type="Container" parent="UI" unique_id=1213126528]
 anchors_preset = 12

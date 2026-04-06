@@ -6,8 +6,8 @@ enum CardSuite {
 	Hearts = 0,
 	Diamonds = 1,
 	Clubs = 2,
-	Clovers = 3,
-	Special = 4
+	Spades = 3,
+	Special = -1
 }
 
 func _get_card_spr_index() -> int:

@@ -1,0 +1,12 @@
+res://Game/Cards/CardDisplayer.tscn
+res://card_list.gd
+res://Documentation/GameDoc.md
+res://game.tscn
+res://Game/Cards/card_displayer.gd
+res://sprite_2d.gd
+res://Game/Cards/card.gd
+res://DeckSelector.gd
+res://deck_display.gd
+res://deck_manager.gd
+res://hand_manager.gd
+res://Game/Cards/numeric_card.gd

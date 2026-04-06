@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://tbjvbc5puxbp" path="res://Game/UI/CardSprites.png" id="1_b2o7s"]
 [ext_resource type="Script" uid="uid://2ulsno3b7ll3" path="res://Game/Cards/card_displayer.gd" id="1_ohbau"]
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_1ea7d"]
+[ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://Fonts/Poco.ttf" id="4_h6fwi"]
 
 [sub_resource type="Resource" id="Resource_h6fwi"]
 script = ExtResource("3_1ea7d")
@@ -10,7 +11,7 @@ number = 5
 metadata/_custom_type_script = "uid://brhe14r13f4vc"
 
 [node name="CardDisplayer" type="Sprite2D" unique_id=105394874]
-scale = Vector2(2, 2)
+scale = Vector2(3, 3)
 texture = ExtResource("1_b2o7s")
 hframes = 13
 vframes = 5
@@ -19,3 +20,16 @@ region_enabled = true
 region_rect = Rect2(0, 0, 648, 348)
 script = ExtResource("1_ohbau")
 card = SubResource("Resource_h6fwi")
+
+[node name="Label" type="Label" parent="." unique_id=926646012]
+modulate = Color(1, 1, 1, 0)
+offset_left = -95.66667
+offset_top = -95.66667
+offset_right = 105.33333
+offset_bottom = -30.666672
+theme_override_fonts/font = ExtResource("4_h6fwi")
+theme_override_font_sizes/font_size = 12
+text = "5 Hearts
+If captured, swap any card in hand 
+with one of your opponent's"
+horizontal_alignment = 1
