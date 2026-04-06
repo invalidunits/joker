@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cmttygqhd40vk"]
+
+[ext_resource type="Texture2D" uid="uid://tbjvbc5puxbp" path="res://Game/UI/CardSprites.png" id="1_b2o7s"]
+[ext_resource type="Script" uid="uid://2ulsno3b7ll3" path="res://Game/Cards/card_displayer.gd" id="1_ohbau"]
+[ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_1ea7d"]
+
+[sub_resource type="Resource" id="Resource_h6fwi"]
+script = ExtResource("3_1ea7d")
+number = 5
+metadata/_custom_type_script = "uid://brhe14r13f4vc"
+
+[node name="CardDisplayer" type="Sprite2D" unique_id=105394874]
+scale = Vector2(2, 2)
+texture = ExtResource("1_b2o7s")
+hframes = 13
+vframes = 5
+frame = 17
+region_enabled = true
+region_rect = Rect2(0, 0, 648, 348)
+script = ExtResource("1_ohbau")
+card = SubResource("Resource_h6fwi")

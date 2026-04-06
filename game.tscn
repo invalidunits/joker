@@ -1,0 +1,280 @@
+[gd_scene format=3 uid="uid://bnyckbligu2p3"]
+
+[ext_resource type="Script" uid="uid://2dkdgsf63c5s" path="res://card_list.gd" id="1_e2o6t"]
+[ext_resource type="Script" uid="uid://y5pqw7oybird" path="res://Game/UI/CardSelector.gd" id="1_feb5d"]
+[ext_resource type="PackedScene" uid="uid://cmttygqhd40vk" path="res://Game/Cards/CardDisplayer.tscn" id="3_feb5d"]
+[ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="4_fc0e3"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_fc0e3"]
+
+[sub_resource type="Animation" id="Animation_7jktm"]
+length = 0.001
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_ryrav"]
+resource_name = "REST"
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1.0333333, 1, 0, 0, 0, 1)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_eow3j"]
+_data = {
+&"RESET": SubResource("Animation_7jktm"),
+&"REST": SubResource("Animation_ryrav")
+}
+
+[sub_resource type="Environment" id="Environment_fc0e3"]
+background_mode = 2
+background_color = Color(0, 0, 0.105882354, 1)
+ambient_light_color = Color(0.63801, 0.218451, 0.28361914, 1)
+
+[sub_resource type="Resource" id="Resource_fc0e3"]
+script = ExtResource("4_fc0e3")
+metadata/_custom_type_script = "uid://brhe14r13f4vc"
+
+[node name="Game" type="Node" unique_id=1292748270]
+
+[node name="Node3D" type="Node3D" parent="." unique_id=1337185827]
+
+[node name="AnimationTree" type="AnimationTree" parent="Node3D" unique_id=492676886]
+tree_root = SubResource("AnimationNodeStateMachine_fc0e3")
+anim_player = NodePath("../AnimationPlayer")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Node3D" unique_id=406681819]
+libraries/ = SubResource("AnimationLibrary_eow3j")
+autoplay = &"REST"
+
+[node name="Node3D" type="Node3D" parent="Node3D" unique_id=27039388]
+transform = Transform3D(1, 0, 0, 0, 0.9478129, 0.31882697, 0, -0.31882697, 0.9478129, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Node3D/Node3D" unique_id=1975208108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.306488)
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="Node3D" unique_id=341082384]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08683109, 0)
+radius = 1.4448242
+height = 0.17211914
+sides = 16
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1142756905]
+transform = Transform3D(-4.371139e-08, -0.29810798, 0.95453215, 0, 0.95453215, 0.29810798, -1, 1.3030713e-08, -4.1723926e-08, 0.56451976, -1.3138943, -2.4675943e-08)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1079780735]
+transform = Transform3D(-1, -2.6061427e-08, 8.344785e-08, 0, 0.95453215, 0.29810798, -8.742278e-08, 0.29810798, -0.95453215, 4.9351886e-08, -1.3138943, -0.56451976)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=430994871]
+transform = Transform3D(1.3113416e-07, 0.29810795, -0.9545321, 0, 0.95453215, 0.29810798, 0.99999994, -3.9092136e-08, 1.2517177e-07, -0.5645197, -1.3138943, 7.4027824e-08)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=321785384]
+transform = Transform3D(1, 0, 0, 0, 0.95453215, 0.29810798, 0, -0.29810798, 0.95453215, 0, -1.3138943, 0.56451976)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=848710243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22261894, 0)
+size = Vector3(1, 0.60791016, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D" unique_id=1299417726]
+environment = SubResource("Environment_fc0e3")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=880753776]
+
+[node name="Container" type="AspectRatioContainer" parent="UI" unique_id=1271719004]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -261.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_feb5d")
+speed = 0.3
+acceleration = 0.5
+
+[node name="CardList" type="MarginContainer" parent="UI/Container" unique_id=590425355]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 120
+script = ExtResource("1_e2o6t")
+offset = 0.0004559409668653
+card_distance = 40.27
+radius = 800.0
+radius_distance = 400.0
+
+[node name="CardDisplayer" parent="UI/Container/CardList" unique_id=105394874 instance=ExtResource("3_feb5d")]
+position = Vector2(-503.35663, 89.10126)
+rotation = -0.6805181
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer2" parent="UI/Container/CardList" unique_id=1550488456 instance=ExtResource("3_feb5d")]
+position = Vector2(-463.08664, 73.82874)
+rotation = -0.61732787
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer3" parent="UI/Container/CardList" unique_id=514960114 instance=ExtResource("3_feb5d")]
+position = Vector2(-422.81665, 60.43186)
+rotation = -0.55685717
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer4" parent="UI/Container/CardList" unique_id=391780746 instance=ExtResource("3_feb5d")]
+position = Vector2(-382.54663, 48.695972)
+rotation = -0.49858502
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer5" parent="UI/Container/CardList" unique_id=1882997572 instance=ExtResource("3_feb5d")]
+position = Vector2(-342.27664, 38.459305)
+rotation = -0.44210806
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer6" parent="UI/Container/CardList" unique_id=752686528 instance=ExtResource("3_feb5d")]
+position = Vector2(-302.00665, 29.597523)
+rotation = -0.38710403
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer7" parent="UI/Container/CardList" unique_id=837972727 instance=ExtResource("3_feb5d")]
+position = Vector2(-261.73663, 22.01391)
+rotation = -0.33330804
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer8" parent="UI/Container/CardList" unique_id=891668402 instance=ExtResource("3_feb5d")]
+position = Vector2(-221.46664, 15.632817)
+rotation = -0.28049704
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer9" parent="UI/Container/CardList" unique_id=104240801 instance=ExtResource("3_feb5d")]
+position = Vector2(-181.19664, 10.3951435)
+rotation = -0.22847848
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer10" parent="UI/Container/CardList" unique_id=1071417009 instance=ExtResource("3_feb5d")]
+position = Vector2(-140.92664, 6.2552595)
+rotation = -0.17708234
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer11" parent="UI/Container/CardList" unique_id=43529733 instance=ExtResource("3_feb5d")]
+position = Vector2(-100.65664, 3.1788056)
+rotation = -0.12615517
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer12" parent="UI/Container/CardList" unique_id=1275187873 instance=ExtResource("3_feb5d")]
+position = Vector2(-60.38664, 1.1411735)
+rotation = -0.07555516
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer13" parent="UI/Container/CardList" unique_id=948873770 instance=ExtResource("3_feb5d")]
+position = Vector2(-20.11664, 0.12648225)
+rotation = -0.025148451
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer14" parent="UI/Container/CardList" unique_id=354071096 instance=ExtResource("3_feb5d")]
+position = Vector2(20.15336, 0.1269445)
+rotation = 0.025194366
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer15" parent="UI/Container/CardList" unique_id=1699985268 instance=ExtResource("3_feb5d")]
+position = Vector2(60.42336, 1.1425638)
+rotation = 0.0756012
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer16" parent="UI/Container/CardList" unique_id=1108233081 instance=ExtResource("3_feb5d")]
+position = Vector2(100.69336, 3.1811347)
+rotation = 0.12620144
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer17" parent="UI/Container/CardList" unique_id=1441685382 instance=ExtResource("3_feb5d")]
+position = Vector2(140.96336, 6.258546)
+rotation = 0.17712899
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer18" parent="UI/Container/CardList" unique_id=1770571552 instance=ExtResource("3_feb5d")]
+position = Vector2(181.23337, 10.399414)
+rotation = 0.22852561
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer19" parent="UI/Container/CardList" unique_id=1852432887 instance=ExtResource("3_feb5d")]
+position = Vector2(221.50336, 15.638105)
+rotation = 0.28054482
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer20" parent="UI/Container/CardList" unique_id=585341588 instance=ExtResource("3_feb5d")]
+position = Vector2(261.77335, 22.020267)
+rotation = 0.3333566
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer21" parent="UI/Container/CardList" unique_id=913838693 instance=ExtResource("3_feb5d")]
+position = Vector2(302.04337, 29.605007)
+rotation = 0.3871536
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer22" parent="UI/Container/CardList" unique_id=1319917881 instance=ExtResource("3_feb5d")]
+position = Vector2(342.31335, 38.467995)
+rotation = 0.44215885
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer23" parent="UI/Container/CardList" unique_id=177019635 instance=ExtResource("3_feb5d")]
+position = Vector2(382.58337, 48.70598)
+rotation = 0.49863732
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer24" parent="UI/Container/CardList" unique_id=209811154 instance=ExtResource("3_feb5d")]
+position = Vector2(422.85336, 60.44329)
+rotation = 0.55691123
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer25" parent="UI/Container/CardList" unique_id=1446373603 instance=ExtResource("3_feb5d")]
+position = Vector2(463.12335, 73.841774)
+rotation = 0.61738414
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer26" parent="UI/Container/CardList" unique_id=189746506 instance=ExtResource("3_feb5d")]
+position = Vector2(503.39337, 89.116135)
+rotation = 0.68057716
+frame = 13
+card = SubResource("Resource_fc0e3")
+
+[node name="Container2" type="Container" parent="UI" unique_id=1213126528]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -235.0
+grow_horizontal = 2
+grow_vertical = 0
