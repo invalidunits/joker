@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://dl77q1ufi8xlv"]
+
+[sub_resource type="GDScript" id="GDScript_3s0qg"]
+script/source = "@tool
+extends Node3D
+
+@export var top_card: Card:
+	set(value):
+		top_card = value
+		_rebuild_pile()
+@export var middle_card: Card:
+	set(value):
+		middle_card = value
+		_rebuild_pile()
+@export var pile_size: int = 1:
+	set(value):
+		pile_size = value
+		_rebuild_pile()
+
+const _3D_CARD_DISPLAYER = preload(\"uid://c20iy7oe3abxs\")
+const _CARD_STACK_NODE_NAME := \"CardStack\"
+const _CARD_VERTICAL_OFFSET := 0.01
+
+func _enter_tree() -> void:
+	_rebuild_pile()
+
+func _rebuild_pile() -> void:
+	if not is_inside_tree():
+		return
+	
+	if pile_size > get_child_count():
+		for index in range(get_child_count(), pile_size):
+			var displayer := _3D_CARD_DISPLAYER.instantiate() as Node3D
+			if displayer == null:
+				continue
+
+			displayer.name = \"3DCardDisplayer%s\" % index
+			displayer.transform = get_transform_for_card(index);
+			if Engine.is_editor_hint():
+				displayer.owner = get_tree().edited_scene_root	
+			add_child(displayer)
+	
+	for child_idx in range(get_child_count()):
+		var displayer := get_child(child_idx)
+		if not is_instance_valid(displayer):
+			return
+		
+		if child_idx >= pile_size:
+			displayer.queue_free()
+			
+		displayer.card = top_card if child_idx == pile_size - 1 else middle_card
+		
+
+func get_transform_for_card(index:int) -> Transform3D:
+	return Transform3D.IDENTITY.translated(Vector3(randf_range(-0.01, 0.01), randf_range(-0.01, 0.01), _CARD_VERTICAL_OFFSET * index)).rotated(Vector3.FORWARD, randf_range(-PI*0.05, PI*0.05))
+"
+
+[node name="Deck" type="Node3D" unique_id=1703109956]
+script = SubResource("GDScript_3s0qg")
+pile_size = 0

@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://cy028omhe3ahx"]
+
+[ext_resource type="Script" uid="uid://2dkdgsf63c5s" path="res://card_list.gd" id="1_bmukk"]
+[ext_resource type="PackedScene" uid="uid://cmttygqhd40vk" path="res://GUI/gui/CardDisplayer.tscn" id="2_fyqsl"]
+[ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_6yrdc"]
+
+[sub_resource type="Resource" id="Resource_bmukk"]
+script = ExtResource("3_6yrdc")
+suite = -1
+number = 3
+metadata/_custom_type_script = "uid://brhe14r13f4vc"
+
+[node name="OpponentCardGraphics" type="Control" unique_id=1272703809]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardList" type="MarginContainer" parent="." unique_id=1903410156]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -149.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 149
+script = ExtResource("1_bmukk")
+offset = -0.6
+card_distance = 80.0
+radius = 800.0
+radius_distance = 400.0
+
+[node name="CardDisplayer" parent="CardList" unique_id=105394874 instance=ExtResource("2_fyqsl")]
+position = Vector2(-194.93134, 12.056133)
+rotation = -0.2461421
+frame = 2
+card = SubResource("Resource_bmukk")
+
+[node name="CardDisplayer2" parent="CardList" unique_id=1925175500 instance=ExtResource("2_fyqsl")]
+position = Vector2(-114.931335, 4.1494007)
+rotation = -0.14416301
+frame = 2
+card = SubResource("Resource_bmukk")
+
+[node name="CardDisplayer3" parent="CardList" unique_id=2100172693 instance=ExtResource("2_fyqsl")]
+position = Vector2(-34.93133, 0.38149378)
+rotation = -0.043678053
+frame = 2
+card = SubResource("Resource_bmukk")
+
+[node name="CardDisplayer4" parent="CardList" unique_id=569402492 instance=ExtResource("2_fyqsl")]
+position = Vector2(45.06867, 0.6352497)
+rotation = 0.056365676
+frame = 2
+card = SubResource("Resource_bmukk")
+
+[node name="CardDisplayer5" parent="CardList" unique_id=757159431 instance=ExtResource("2_fyqsl")]
+position = Vector2(125.068665, 4.918417)
+rotation = 0.15697977
+frame = 2
+card = SubResource("Resource_bmukk")

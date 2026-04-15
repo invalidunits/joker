@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="devintegfinalproject"
+run/main_scene="uid://ng4t61vwt4v1"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -24,6 +25,10 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="devintegfinalproject"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/sprite_mesh/plugin.cfg")
 
 [physics]
 

@@ -1,5 +1,14 @@
-Sprite2D
-Node
-AspectRatioContainer
+Node3D
+GraphElement
+SpriteMeshInstance
+Control
+Sprite3D
+SubViewport
+AnimationTree
 Container
+VBoxContainer
+MarginContainer
+Button
+HSplitContainer
+AnimationPlayer
 Label

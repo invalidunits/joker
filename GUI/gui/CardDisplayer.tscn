@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cmttygqhd40vk"]
 
-[ext_resource type="Texture2D" uid="uid://tbjvbc5puxbp" path="res://Game/UI/CardSprites.png" id="1_b2o7s"]
+[ext_resource type="Texture2D" uid="uid://tbjvbc5puxbp" path="res://GUI/CardSprites.png" id="1_b2o7s"]
 [ext_resource type="Script" uid="uid://2ulsno3b7ll3" path="res://Game/Cards/card_displayer.gd" id="1_ohbau"]
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_1ea7d"]
-[ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://Fonts/Poco.ttf" id="4_h6fwi"]
+[ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://GUI/Poco.ttf" id="4_h6fwi"]
 
 [sub_resource type="Resource" id="Resource_h6fwi"]
 script = ExtResource("3_1ea7d")

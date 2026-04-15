@@ -1,0 +1,278 @@
+[gd_scene format=3 uid="uid://bnyckbligu2p3"]
+
+[ext_resource type="PackedScene" uid="uid://cy028omhe3ahx" path="res://GUI/gui/OpponentCardGraphics.tscn" id="1_b2bpf"]
+[ext_resource type="PackedScene" uid="uid://cmttygqhd40vk" path="res://GUI/gui/CardDisplayer.tscn" id="2_7lihs"]
+[ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_fgofq"]
+[ext_resource type="Script" uid="uid://y5pqw7oybird" path="res://GUI/gui/CardSelector.gd" id="4_2irst"]
+[ext_resource type="Script" uid="uid://2dkdgsf63c5s" path="res://card_list.gd" id="5_bf53h"]
+[ext_resource type="PackedScene" uid="uid://c8irbin8nkjc3" path="res://GUI/gui/PlayerTable.tscn" id="6_7lihs"]
+
+[sub_resource type="Animation" id="Animation_fc0e3"]
+resource_name = "LookAtTable"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Node3D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(0.5176322, 1),
+"update": 0,
+"values": [Vector3(-0.3162362, 0, 0), Vector3(-0.9250245, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Node3D/Camera3D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 2.306488), Vector3(0, 0, 2.065)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../UI/Container/CardList:theme_override_constants/margin_bottom")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(0.55478466, 1),
+"update": 0,
+"values": [149, 0]
+}
+
+[sub_resource type="Animation" id="Animation_7jktm"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Node3D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.0009999999),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-0.3162362, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Node3D/Camera3D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 2.306488)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../UI/Container/CardList:theme_override_constants/margin_bottom")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [149]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_eow3j"]
+_data = {
+&"LookAtTable": SubResource("Animation_fc0e3"),
+&"RESET": SubResource("Animation_7jktm")
+}
+
+[sub_resource type="GDScript" id="GDScript_7jktm"]
+script/source = "extends AnimationPlayer
+
+
+var looking_at_table:bool
+var last_animation:String
+
+func _process(delta: float) -> void:
+	var current_anim_pos = 0.0
+	if is_playing():
+		current_anim_pos = current_animation_position
+	else:
+		current_anim_pos = 1.0 if last_animation == \"LookAtTableF\" else 0.0
+		
+	if looking_at_table and (not is_playing() or current_anim_pos < 1.0):
+		if not is_equal_approx(current_anim_pos, 1.0):
+			play_section(&\"LookAtTable\", current_anim_pos, 1.0, -1, 1.0, false)
+	elif not looking_at_table and last_animation == &\"LookAtTableF\":
+		if not is_equal_approx(current_anim_pos, 0.0):
+			play_section_backwards(&\"LookAtTable\", 0.0, current_anim_pos)
+	
+	if is_playing():
+		last_animation = current_animation
+		if get_playing_speed() < 0:
+			last_animation += \"B\"
+		else:
+			last_animation += \"F\"
+"
+
+[sub_resource type="Environment" id="Environment_7lihs"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_ryrav"]
+viewport_path = NodePath("OtherPlayer")
+
+[sub_resource type="Resource" id="Resource_fc0e3"]
+script = ExtResource("3_fgofq")
+number = 2
+metadata/_custom_type_script = "uid://brhe14r13f4vc"
+
+[sub_resource type="GDScript" id="GDScript_fc0e3"]
+script/source = "extends Control
+
+
+
+@onready var animation_player: AnimationPlayer = $\"../../Node3D/AnimationPlayer\"
+
+
+func _process(delta: float) -> void:
+	var mouse := get_global_mouse_position();
+	var looking_at_table = get_rect().has_point(mouse);
+	animation_player.looking_at_table = looking_at_table
+"
+
+[node name="Game" type="Node" unique_id=1292748270]
+
+[node name="OtherPlayer" type="SubViewport" parent="." unique_id=1197983785]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(1280, 720)
+
+[node name="OpponentCardGraphics" parent="OtherPlayer" unique_id=1272703809 instance=ExtResource("1_b2bpf")]
+
+[node name="Node3D" type="Node3D" parent="." unique_id=1337185827]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Node3D" unique_id=406681819]
+libraries/ = SubResource("AnimationLibrary_eow3j")
+script = SubResource("GDScript_7jktm")
+
+[node name="Node3D" type="Node3D" parent="Node3D" unique_id=27039388]
+transform = Transform3D(1, 0, 0, 0, 0.95041263, 0.31099162, 0, -0.31099162, 0.95041263, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Node3D/Node3D" unique_id=1975208108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.306488)
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="Node3D" unique_id=341082384]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08683109, 0)
+radius = 1.4448242
+height = 0.17211914
+sides = 16
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1142756905]
+transform = Transform3D(-4.371139e-08, -0.29810798, 0.95453215, 0, 0.95453215, 0.29810798, -1, 1.3030713e-08, -4.1723926e-08, 0.56451976, -1.3138943, -2.4675943e-08)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1079780735]
+transform = Transform3D(-1, -2.6061427e-08, 8.344785e-08, 0, 0.95453215, 0.29810798, -8.742278e-08, 0.29810798, -0.95453215, 4.9351886e-08, -1.3138943, -0.56451976)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=430994871]
+transform = Transform3D(1.3113416e-07, 0.29810795, -0.9545321, 0, 0.95453215, 0.29810798, 0.99999994, -3.9092136e-08, 1.2517177e-07, -0.5645197, -1.3138943, 7.4027824e-08)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=321785384]
+transform = Transform3D(1, 0, 0, 0, 0.95453215, 0.29810798, 0, -0.29810798, 0.95453215, 0, -1.3138943, 0.56451976)
+size = Vector3(0.3, 1.8468852, 0.3)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=848710243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22261894, 0)
+size = Vector3(1, 0.60791016, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D" unique_id=1299417726]
+environment = SubResource("Environment_7lihs")
+
+[node name="Sprite3D" type="Sprite3D" parent="Node3D" unique_id=379007747]
+transform = Transform3D(0.305, 0, 0, 0, 0.305, 0, 0, 0, 0.305, 0, 0.9313247, -1.7121522)
+texture = SubResource("ViewportTexture_ryrav")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=880753776]
+
+[node name="Container" type="AspectRatioContainer" parent="UI" unique_id=1271719004]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -415.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("4_2irst")
+speed = 0.3
+acceleration = 0.5
+
+[node name="CardList" type="MarginContainer" parent="UI/Container" unique_id=590425355]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 149
+script = ExtResource("5_bf53h")
+offset = -0.6
+card_distance = 80.0
+radius = 800.0
+radius_distance = 400.0
+
+[node name="CardDisplayer5" parent="UI/Container/CardList" unique_id=1882997572 instance=ExtResource("2_7lihs")]
+position = Vector2(-234.93134, 17.636538)
+rotation = -0.29805776
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer6" parent="UI/Container/CardList" unique_id=325569349 instance=ExtResource("2_7lihs")]
+position = Vector2(-154.93134, 7.572847)
+rotation = -0.19489565
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer7" parent="UI/Container/CardList" unique_id=309328252 instance=ExtResource("2_7lihs")]
+position = Vector2(-74.931335, 1.7584605)
+rotation = -0.09380166
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer8" parent="UI/Container/CardList" unique_id=1484142162 instance=ExtResource("2_7lihs")]
+position = Vector2(5.068667, 0.008028639)
+rotation = 0.006335876
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer9" parent="UI/Container/CardList" unique_id=1942312542 instance=ExtResource("2_7lihs")]
+position = Vector2(85.068665, 2.267891)
+rotation = 0.10653725
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer10" parent="UI/Container/CardList" unique_id=1619082133 instance=ExtResource("2_7lihs")]
+position = Vector2(165.06866, 8.607507)
+rotation = 0.20782872
+frame = 14
+card = SubResource("Resource_fc0e3")
+
+[node name="LookAtDeck" type="Control" parent="UI" unique_id=1201037312]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 207.0
+grow_horizontal = 2
+script = SubResource("GDScript_fc0e3")
+
+[node name="Tables" type="Node3D" parent="." unique_id=1521527310]
+
+[node name="MyTable" parent="Tables" unique_id=129488746 instance=ExtResource("6_7lihs")]
+
+[node name="TheirTable" parent="Tables" unique_id=1416555390 instance=ExtResource("6_7lihs")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)

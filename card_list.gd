@@ -17,6 +17,9 @@ var radius_distance:float = 100;
 
 var selected_card = 0
 
+@export
+var selecting:bool = true
+
 
 var max_offset:float = 0
 var min_offset:float = 0
@@ -46,6 +49,7 @@ func _process(delta: float) -> void:
 	var half = float(len(nodes))/2.0 - 0.5 - real_offset
 	var local_mouse = get_local_mouse_position()
 	var best_distance = INF
+	selected_card = -1
 	for i in range(len(nodes)):
 		var node = nodes[i]
 		if node.is_played:
@@ -55,10 +59,11 @@ func _process(delta: float) -> void:
 		node.position.x = (float(i) - half) * card_distance
 		node.position.y = (1.0 - cos(asin(min(node.position.x / radius, 1.0)))) * radius_distance
 		
-		var local_distance = local_mouse.distance_squared_to(node.position);
-		if local_distance < best_distance:
-			best_distance = local_distance
-			selected_card = i
+		if selecting:
+			var local_distance = local_mouse.distance_squared_to(node.position);
+			if local_distance < best_distance:
+				best_distance = local_distance
+				selected_card = i
 		node.rotation = asin(min(node.position.x / radius, 1.0))
 	
 

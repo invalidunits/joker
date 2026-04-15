@@ -1,0 +1,7 @@
+[gd_resource type="Theme" format=3 uid="uid://b31nb1atqqctw"]
+
+[ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://GUI/Poco.ttf" id="1_hmmm0"]
+
+[resource]
+default_font = ExtResource("1_hmmm0")
+default_font_size = 30
