@@ -34,11 +34,14 @@ func _on_stop_waiting_pressed() -> void:
 script/source = "extends CanvasLayer
 
 
+const OnlineMatchSession = preload(\"res://Scenes/online_match_session.gd\")
+
+
 @export var backend_base_url: String = \"http://127.0.0.1:8080\"
-@export_file(\"*.tscn\") var online_scene_path: String = \"res://Online.tscn\"
+@export_file(\"*.tscn\") var online_scene_path: String = \"res://Scenes/Online.tscn\"
 
 var _wait_time := 0.0
-var _queue_socket: WebSocketPeer
+var _http_request: HTTPRequest
 
 @export var waiting_for_time: Label 
 @onready var status_label: Label = $VBoxContainer/HSplitContainer2/StatusLabel
@@ -54,7 +57,7 @@ func _on_visibility_changed() -> void:
 		_wait_time = 0.0
 		_connect_to_queue()
 	else:
-		_close_queue_socket(1000, \"menu-hidden\")
+		_cancel_request()
 
 
 func _process(delta: float) -> void:
@@ -63,105 +66,77 @@ func _process(delta: float) -> void:
 	if _working:
 		_wait_time += delta
 		waiting_for_time.text = str(roundi(_wait_time)) + \"s\"
-		_poll_queue_socket()
-		
 		dots_animation_player.play(\"Anim\")
 	else:
 		dots_animation_player.play(\"RESET\")
 
-func _failed_connection(reason:String) -> void:
+func _failed_connection(reason: String) -> void:
 	push_warning(\"Failed to connect (error %s)\" % reason)
 	status_label.text = reason
 	_working = false
-	_queue_socket = null
 	waiting.visible = false
-	
+
 
 func _connect_to_queue() -> void:
-	_close_queue_socket(1000, \"reconnecting\")
-	status_label.text = \"Unable to connect to Matchmaking server\"
-	
-	_queue_socket = WebSocketPeer.new()
-	var ws_url := _build_websocket_url(backend_base_url, \"/match\")
-	print(ws_url)
-	var err := _queue_socket.connect_to_url(ws_url)
+	_cancel_request()
 	status_label.text = \"Reaching Matchmaking Server\"
 
-func _poll_queue_socket() -> void:
-	if _queue_socket == null:
-		return
-	var was_open = _queue_socket.get_ready_state() == WebSocketPeer.STATE_OPEN
-	_queue_socket.poll()
-	var state := _queue_socket.get_ready_state()
+	_http_request = HTTPRequest.new()
+	add_child(_http_request)
+	_http_request.request_completed.connect(_on_request_completed)
 
-	if state == WebSocketPeer.STATE_OPEN:
-		if not was_open:
-			status_label.text = \"Waiting for Opponent\"
-		while _queue_socket.get_available_packet_count() > 0:
-			var packet := _queue_socket.get_packet()
-			_handle_queue_payload(packet.get_string_from_utf8())
-	elif state == WebSocketPeer.STATE_CLOSED:
-		var code = _queue_socket.get_close_code()
-		var reason = _queue_socket.get_close_reason()
-		if reason.is_empty():
-			reason = \"Connection Failed\";
-		print(\"WebSocket closed with code: %d, reason %s. Clean: %s\" % [code, reason, code != -1])
-		_failed_connection(reason)
+	var url := backend_base_url.trim_suffix(\"/\") + \"/match\"
+	var err := _http_request.request(url)
+	if err != OK:
+		_cancel_request()
+		_failed_connection(\"Failed to send request\")
+	else:
+		status_label.text = \"Waiting for Opponent\"
+
+
+func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_cancel_request()
+	if result != HTTPRequest.RESULT_SUCCESS:
+		_failed_connection(\"Connection Failed\")
 		return
+	if response_code != 200:
+		_failed_connection(\"Server error: %d\" % response_code)
+		return
+	_handle_queue_payload(body.get_string_from_utf8())
 
 
 func _handle_queue_payload(payload: String) -> void:
 	var json := JSON.new()
 	if json.parse(payload) != OK:
 		push_warning(\"Invalid matchmaking payload: %s\" % payload)
+		_failed_connection(\"Invalid server response\")
 		return
 
 	if typeof(json.data) != TYPE_DICTIONARY:
+		_failed_connection(\"Invalid server response\")
 		return
 
 	var message: Dictionary = json.data
 	print(message)
-	var message_type := str(message.get(\"type\", \"\"))
-	if message_type != \"matchFound\":
+	var match_id := str(message.get(\"id\", \"\"))
+	if match_id.is_empty():
+		_failed_connection(\"Missing match ID\")
 		return
 
-	var match_id := str(message.get(\"Id\", \"\"))
-	if match_id.is_empty():
-		return
-	
 	_working = false
 	status_label.text = \"Match found! Joining game\"
+	OnlineMatchSession.store_match(backend_base_url, match_id)
 	if ResourceLoader.exists(online_scene_path):
 		get_tree().change_scene_to_file(online_scene_path)
 	else:
 		push_warning(\"Online scene missing at %s\" % online_scene_path)
 
 
-func _build_websocket_url(base_url: String, route: String) -> String:
-	var normalized := base_url.strip_edges()
-	if normalized.begins_with(\"https://\"):
-		normalized = \"wss://\" + normalized.trim_prefix(\"https://\")
-	elif normalized.begins_with(\"http://\"):
-		normalized = \"ws://\" + normalized.trim_prefix(\"http://\")
-	elif not normalized.begins_with(\"ws://\") and not normalized.begins_with(\"wss://\"):
-		normalized = \"ws://\" + normalized
-
-	if route.begins_with(\"/\"):
-		return normalized.trim_suffix(\"/\") + route
-
-	return normalized.trim_suffix(\"/\") + \"/\" + route
-
-
-func _close_queue_socket(code: int, reason: String) -> void:
-	print(\"Disconnecting from socket queue: \", code, \" \", reason)
-	if _queue_socket == null:
-		return
-
-	var state := _queue_socket.get_ready_state()
-	if state == WebSocketPeer.STATE_OPEN or state == WebSocketPeer.STATE_CONNECTING:
-		_queue_socket.close(code, reason)
-
-	_queue_socket = null
+func _cancel_request() -> void:
+	if _http_request != null:
+		_http_request.cancel_request()
+		_http_request.queue_free()
+		_http_request = null
 "
 
 [sub_resource type="Animation" id="Animation_yk3ul"]
@@ -235,11 +210,8 @@ vertical_alignment = 1
 
 [node name="SubMenus" type="Node" parent="." unique_id=1045811200]
 script = SubResource("GDScript_8e51s")
-selected_menu = 1
 
 [node name="Main Menu" type="CanvasLayer" parent="SubMenus" unique_id=2061450689]
-process_mode = 4
-visible = false
 follow_viewport_enabled = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SubMenus/Main Menu" unique_id=1885322661]
@@ -274,9 +246,10 @@ layout_mode = 2
 text = "Quit"
 
 [node name="Waiting For Match" type="CanvasLayer" parent="SubMenus" unique_id=149019652 node_paths=PackedStringArray("waiting_for_time")]
+process_mode = 4
+visible = false
 follow_viewport_enabled = true
 script = SubResource("GDScript_yk3ul")
-online_scene_path = "uid://bnyckbligu2p3"
 waiting_for_time = NodePath("VBoxContainer/Waiting/Waiting For_2")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SubMenus/Waiting For Match" unique_id=1670790649]
