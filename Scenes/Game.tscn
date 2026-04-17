@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_fgofq"]
 [ext_resource type="PackedScene" uid="uid://c8irbin8nkjc3" path="res://GUI/gui/PlayerTable.tscn" id="6_7lihs"]
 [ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://GUI/Poco.ttf" id="6_fgofq"]
+[ext_resource type="FontFile" uid="uid://di3bt8c34t5y8" path="res://GUI/Gothicha.ttf" id="8_bf53h"]
 
 [sub_resource type="Animation" id="Animation_fc0e3"]
 resource_name = "LookAtTable"
@@ -316,6 +317,31 @@ position = Vector2(227.40054, 0.00031920426)
 rotation = 0.0025266754
 frame = 1
 card = SubResource("Resource_fc0e3")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI" unique_id=1456816702]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 179.0
+grow_horizontal = 2
+theme_override_constants/margin_top = 45
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/MarginContainer" unique_id=1890851885]
+layout_mode = 2
+alignment = 1
+
+[node name="BigEventLabel" type="Label" parent="UI/MarginContainer/VBoxContainer" unique_id=648879400]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("8_bf53h")
+theme_override_font_sizes/font_size = 100
+text = "Big Event Label"
+horizontal_alignment = 1
+
+[node name="SmallEventLabel" type="Label" parent="UI/MarginContainer/VBoxContainer" unique_id=2097723776]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("8_bf53h")
+theme_override_font_sizes/font_size = 36
+text = "small event label"
+horizontal_alignment = 1
 
 [node name="Tables" type="Node3D" parent="." unique_id=1521527310]
 

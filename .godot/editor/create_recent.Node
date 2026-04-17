@@ -1,9 +1,10 @@
+MarginContainer
+VBoxContainer
+Label
 MeshInstance3D
 Sprite3D
 Node2D
-VBoxContainer
 VSplitContainer
-Label
 Control
 RichTextLabel
 Node3D

@@ -31,12 +31,20 @@ var _last_sent_card_list_offset: float = 0
 var _choose_top_five_rest_position: Vector2
 var _choose_top_five_hidden_position: Vector2
 var _choose_top_five_tween: Tween
+var _event_label_rest_position: Vector2
+var _event_label_hidden_position: Vector2
+var _event_label_tween: Tween
+var _event_label_hide_timer: SceneTreeTimer = null
+
+const EVENT_LABEL_SLIDE_IN_SECONDS := 0.3
+const EVENT_LABEL_SLIDE_OUT_SECONDS := 0.22
+const EVENT_LABEL_HOLD_SECONDS := 2.0
 
 @onready var _card_list: MarginContainer = $Game/UI/Container/CardList
 @onready var _opponent_card_list: MarginContainer = $Game/OtherPlayer/OpponentCardGraphics/CardList
-@onready var _status_label: Label = $Overlay/MarginContainer/PanelContainer/VBoxContainer/StatusLabel
-@onready var _detail_label: Label = $Overlay/MarginContainer/PanelContainer/VBoxContainer/DetailLabel
-@onready var _back_button: Button = $Overlay/MarginContainer/PanelContainer/VBoxContainer/BackButton
+@onready var _event_label_container: MarginContainer = $Game/UI/MarginContainer
+@onready var _status_label: Label = $Game/UI/MarginContainer/VBoxContainer/BigEventLabel
+@onready var _detail_label: Label = $Game/UI/MarginContainer/VBoxContainer/SmallEventLabel
 @onready var _choose_top_five: VBoxContainer = $Game/UI/ChooseTop5
 @onready var _card_selector: MarginContainer = $Game/UI/ChooseTop5/CardSelector
 @onready var _my_table: Node3D = $Game/Tables/MyTable
@@ -47,13 +55,19 @@ var _choose_top_five_tween: Tween
 func _ready() -> void:
 	_card_list.played_card.connect(_on_card_clicked)
 	_card_selector.played_card.connect(_on_top_five_card_clicked)
-	_back_button.pressed.connect(_return_to_menu)
 	_choose_top_five_rest_position = _choose_top_five.position
 	_choose_top_five_hidden_position = Vector2(
 		_choose_top_five_rest_position.x,
 		_choose_top_five_rest_position.y - get_viewport().get_visible_rect().size.y
 	)
 	_hide_choose_top_five(true)
+	_event_label_rest_position = _event_label_container.position
+	_event_label_hidden_position = Vector2(
+		_event_label_rest_position.x,
+		_event_label_rest_position.y - get_viewport().get_visible_rect().size.y
+	)
+	_event_label_container.position = _event_label_hidden_position
+	_event_label_container.visible = false
 	_card_selector.selecting = false
 	_clear_sample_hand()
 	_opponent_card_list.selecting = false
@@ -97,7 +111,7 @@ func _connect_to_match() -> void:
 		_show_connection_error("Failed to connect to match %s" % match_id)
 		return
 
-	_set_status("Connecting to match", match_id)
+	_set_status("Connecting to match", match_id, true)
 
 
 func _poll_socket() -> void:
@@ -131,7 +145,7 @@ func _handle_payload(payload: String) -> void:
 			var joined_player = message.get("player", null)
 			if joined_player != null:
 				_player_index = int(joined_player)
-			_set_status("Joined match", "You are Player %s" % str(_player_index + 1))
+			_set_status("Joined match", "You are Player %s" % str(_player_index + 1), true)
 		"startingRoundIn":
 			_handle_round_start(message)
 		"hand":
@@ -180,7 +194,7 @@ func _handle_meta(message: Dictionary) -> void:
 func _handle_round_start(message: Dictionary) -> void:
 	var time_text := str(message.get("time", ""))
 	_round_start_unix = Time.get_unix_time_from_datetime_string(time_text)
-	_set_status("Round starting", _format_countdown_text())
+	_set_status("Round starting", _format_countdown_text(), true)
 
 
 func _handle_hand(message: Dictionary) -> void:
@@ -189,7 +203,6 @@ func _handle_hand(message: Dictionary) -> void:
 	_current_hand = Marshalls.base64_to_raw(str(message.get("hand", "")))
 	_render_hand()
 	_render_opponent_hand(int(message.get("opponentHandLen", 0)))
-	_set_status("Hand updated", "Deck remaining: %s" % str(int(message.get("decklen", 0))))
 
 
 func _handle_turn_request(message: Dictionary) -> void:
@@ -200,11 +213,11 @@ func _handle_turn_request(message: Dictionary) -> void:
 	_set_hand_interactable(true)
 	var first_player = message.get("firstPlayer", null)
 	if first_player == null:
-		_set_status("Choose a card", "Turn %s" % str(_current_turn))
+		_set_status("Choose a card", "Turn %s" % str(_current_turn), true)
 	elif int(first_player) == _player_index:
-		_set_status("Play first", "Turn %s" % str(_current_turn))
+		_set_status("Play first", "Turn %s" % str(_current_turn), true)
 	else:
-		_set_status("Waiting for opponent", "Turn %s" % str(_current_turn))
+		_set_status("Waiting for opponent", "Turn %s" % str(_current_turn), true)
 
 func _handle_war_turn_request(_message: Dictionary) -> void:
 	_war_selected_cards.clear()
@@ -212,7 +225,7 @@ func _handle_war_turn_request(_message: Dictionary) -> void:
 	if _war_needed_count == 0:
 		# No hand cards — server draws all from deck, submit immediately
 		_send_json({"type": "warTurn", "cards": []})
-		_set_status("War!", "Drawing from deck...")
+		_set_status("War!", "Drawing from deck...", true)
 		return
 	_awaiting_war_turn = true
 	_card_list.selecting = true
@@ -274,11 +287,9 @@ func _handle_opponent_played(message: Dictionary) -> void:
 	var card = message.get("card", null)
 	if card == null:
 		_set_played_card(player, 0, false)
-		_set_status("Opponent played", "Waiting for reveal")
 		return
 
 	_set_played_card(player, int(card), true)
-	_set_status("Opponent card revealed", _describe_card(int(card)))
 
 
 func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
@@ -315,6 +326,8 @@ func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
 		_set_status("Round won", _detail_label.text)
 	elif winner >= 0:
 		_set_status("Round lost", _detail_label.text)
+	else:
+		_hide_event_label()
 
 
 func _handle_preround_result(message: Dictionary) -> void:
@@ -327,14 +340,6 @@ func _handle_preround_result(message: Dictionary) -> void:
 
 	_set_played_card(0, int(played[0]), true)
 	_set_played_card(1, int(played[1]), true)
-
-	var winner := int(message.get("winner", -1))
-	if winner == _player_index:
-		_set_status("Cards revealed", "You take this trick")
-	elif winner >= 0:
-		_set_status("Cards revealed", "Opponent takes this trick")
-	else:
-		_set_status("Cards revealed", "War continues")
 
 
 func _handle_choose_top_five(message: Dictionary) -> void:
@@ -359,8 +364,6 @@ func _handle_choose_top_five(message: Dictionary) -> void:
 	_show_choose_top_five()
 	_card_selector.selecting = true
 
-	_set_status("Card effect", "Choose from the top of your deck")
-
 
 func _handle_match_ended(message: Dictionary) -> void:
 	_awaiting_turn = false
@@ -370,11 +373,11 @@ func _handle_match_ended(message: Dictionary) -> void:
 	var winner := int(message.get("winner", -1))
 	var reason := str(message.get("reason", "unknown"))
 	if winner < 0:
-		_set_status("Match ended", "Result: tie (%s)" % reason)
+		_set_status("Match ended", "Result: tie (%s)" % reason, true)
 	elif winner == _player_index:
-		_set_status("Match ended", "You won (%s)" % reason)
+		_set_status("Match ended", "You won (%s)" % reason, true)
 	else:
-		_set_status("Match ended", "You lost (%s)" % reason)
+		_set_status("Match ended", "You lost (%s)" % reason, true)
 	_close_socket(1000, "match-ended")
 
 
@@ -436,7 +439,7 @@ func _on_card_clicked(_index:int, displayer: CardDisplayer) -> void:
 			_awaiting_war_turn = false
 			_set_hand_interactable(false)
 			_card_list.selecting = false
-			_set_status("War cards submitted", "Waiting for opponent...")
+			_set_status("Waiting for opponent...", "War cards submitted", true)
 		else:
 			_update_war_status()
 		return
@@ -453,8 +456,8 @@ func _on_card_clicked(_index:int, displayer: CardDisplayer) -> void:
 	_awaiting_turn = false
 	_set_hand_interactable(false)
 	_card_list.selecting = false
-	displayer.queue_free();
-	_set_status("Turn submitted", "Waiting for opponent")
+	displayer.queue_free()
+	_set_status("Waiting for opponent", "Turn submitted", true)
 
 
 func _on_top_five_card_clicked(_index: int, displayer: CardDisplayer) -> void:
@@ -468,7 +471,6 @@ func _on_top_five_card_clicked(_index: int, displayer: CardDisplayer) -> void:
 	})
 	_hide_choose_top_five()
 	_card_selector.selecting = false
-	_set_status("Choice sent", _describe_card(_choice_cards[choice_index]))
 
 
 func _show_choose_top_five() -> void:
@@ -540,9 +542,9 @@ func _update_war_status() -> void:
 	var sacrifices_needed := mini(total - 1, 3)
 	if selected < sacrifices_needed:
 		var left := sacrifices_needed - selected
-		_set_status("War! Select sacrifice %d/%d" % [selected + 1, sacrifices_needed], "Pick a card to sacrifice")
+		_set_status("War! Select sacrifice %d/%d" % [selected + 1, sacrifices_needed], "Pick a card to sacrifice", true)
 	else:
-		_set_status("War! Select your war card", "This card battles the opponent")
+		_set_status("War! Select your war card", "This card battles the opponent", true)
 
 
 func _set_looking_at_table(enabled: bool) -> void:
@@ -756,13 +758,40 @@ func _sync_card_list_metadata() -> void:
 	})
 
 
-func _set_status(title: String, detail: String) -> void:
+func _set_status(title: String, detail: String, permanent: bool = false) -> void:
 	_status_label.text = title
 	_detail_label.text = detail
+	_show_event_label(permanent)
+
+
+func _show_event_label(permanent: bool = false) -> void:
+	if _event_label_tween != null and _event_label_tween.is_valid():
+		_event_label_tween.kill()
+
+	_event_label_container.visible = true
+	_event_label_tween = create_tween()
+	_event_label_tween.set_trans(Tween.TRANS_CUBIC)
+	_event_label_tween.set_ease(Tween.EASE_OUT)
+	_event_label_tween.tween_property(_event_label_container, "position", _event_label_rest_position, EVENT_LABEL_SLIDE_IN_SECONDS)
+
+	if not permanent:
+		_event_label_hide_timer = get_tree().create_timer(EVENT_LABEL_HOLD_SECONDS)
+		_event_label_hide_timer.timeout.connect(_hide_event_label, CONNECT_ONE_SHOT)
+
+
+func _hide_event_label() -> void:
+	if _event_label_tween != null and _event_label_tween.is_valid():
+		_event_label_tween.kill()
+
+	_event_label_tween = create_tween()
+	_event_label_tween.set_trans(Tween.TRANS_CUBIC)
+	_event_label_tween.set_ease(Tween.EASE_IN)
+	_event_label_tween.tween_property(_event_label_container, "position", _event_label_hidden_position, EVENT_LABEL_SLIDE_OUT_SECONDS)
+	_event_label_tween.finished.connect(func() -> void: _event_label_container.visible = false)
 
 
 func _show_connection_error(message: String) -> void:
-	_set_status("Connection error", message)
+	_set_status("Connection error", message, true)
 	_set_hand_interactable(false)
 	_card_list.selecting = false
 
@@ -819,9 +848,3 @@ func _format_countdown_text() -> String:
 		return _detail_label.text
 	var remaining := maxi(int(ceil(_round_start_unix - Time.get_unix_time_from_system())), 0)
 	return "Round starts in %ss" % str(remaining)
-
-
-func _return_to_menu() -> void:
-	MatchSessionState.clear_match()
-	_close_socket(1000, "return-menu")
-	get_tree().change_scene_to_file(menu_scene_path)
