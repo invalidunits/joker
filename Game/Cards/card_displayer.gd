@@ -24,6 +24,8 @@ static func reset_play_lock() -> void:
 func _render():
 	if is_instance_valid(card):
 		frame = card._get_card_spr_index()
+	if is_instance_valid(card):
+		$Label.text = "[font_size=16]" + card._describe_card() + "[/font_size]\n" + card._describe_ability()
 
 func play_card():
 	is_played = true
@@ -53,4 +55,3 @@ func _process(delta: float) -> void:
 		return
 	
 	$Label.modulate.a = lerp($Label.modulate.a, float(time_selected > 0.5), delta * 8)
-		

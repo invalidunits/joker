@@ -313,7 +313,7 @@ func _make_card_resource(card_value: int) -> Card:
 	var card := NumericCard.new()
 	if backend_suite == 4:
 		card.suite = Card.CardSuite.Special
-		card.number = clampi(backend_number, 1, 13)
+		card.number = 2
 		return card
 
 	match backend_suite:
@@ -336,7 +336,7 @@ func _describe_card(card_value: int) -> String:
 	var backend_suite := card_value & 0b111
 	var backend_number := (card_value >> 3) & 0b11111
 	if backend_suite == 4 and backend_number == 0:
-		return "Jester"
+		return "Joker"
 
 	var names := {
 		11: "Jack",

@@ -130,6 +130,7 @@ viewport_path = NodePath("OtherPlayer")
 
 [sub_resource type="Resource" id="Resource_fc0e3"]
 script = ExtResource("3_fgofq")
+suite = -1
 number = 2
 metadata/_custom_type_script = "uid://brhe14r13f4vc"
 
@@ -229,37 +230,37 @@ radius_distance = 400.0
 [node name="CardDisplayer5" parent="UI/Container/CardList" unique_id=1882997572 instance=ExtResource("2_7lihs")]
 position = Vector2(-234.93134, 17.636538)
 rotation = -0.29805776
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="CardDisplayer6" parent="UI/Container/CardList" unique_id=325569349 instance=ExtResource("2_7lihs")]
 position = Vector2(-154.93134, 7.572847)
 rotation = -0.19489565
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="CardDisplayer7" parent="UI/Container/CardList" unique_id=309328252 instance=ExtResource("2_7lihs")]
 position = Vector2(-74.931335, 1.7584605)
 rotation = -0.09380166
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="CardDisplayer8" parent="UI/Container/CardList" unique_id=1484142162 instance=ExtResource("2_7lihs")]
 position = Vector2(5.068667, 0.008028639)
 rotation = 0.006335876
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="CardDisplayer9" parent="UI/Container/CardList" unique_id=1942312542 instance=ExtResource("2_7lihs")]
 position = Vector2(85.068665, 2.267891)
 rotation = 0.10653725
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="CardDisplayer10" parent="UI/Container/CardList" unique_id=1619082133 instance=ExtResource("2_7lihs")]
 position = Vector2(165.06866, 8.607507)
 rotation = 0.20782872
-frame = 14
+frame = 1
 card = SubResource("Resource_fc0e3")
 
 [node name="LookAtDeck" type="Control" parent="UI" unique_id=1201037312]

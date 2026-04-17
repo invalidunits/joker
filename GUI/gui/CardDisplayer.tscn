@@ -5,9 +5,10 @@
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_1ea7d"]
 [ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://GUI/Poco.ttf" id="4_h6fwi"]
 
-[sub_resource type="Resource" id="Resource_h6fwi"]
+[sub_resource type="Resource" id="Resource_0e5kn"]
 script = ExtResource("3_1ea7d")
-number = 5
+suite = 1
+number = 4
 metadata/_custom_type_script = "uid://brhe14r13f4vc"
 
 [node name="CardDisplayer" type="Sprite2D" unique_id=105394874]
@@ -15,21 +16,23 @@ scale = Vector2(3, 3)
 texture = ExtResource("1_b2o7s")
 hframes = 13
 vframes = 5
-frame = 17
+frame = 29
 region_enabled = true
 region_rect = Rect2(0, 0, 648, 348)
 script = ExtResource("1_ohbau")
-card = SubResource("Resource_h6fwi")
+selected = 1.0
+card = SubResource("Resource_0e5kn")
 
-[node name="Label" type="Label" parent="." unique_id=926646012]
-modulate = Color(1, 1, 1, 0)
+[node name="Label" type="RichTextLabel" parent="." unique_id=2116677768]
 offset_left = -95.66667
-offset_top = -95.66667
+offset_top = -126.0
 offset_right = 105.33333
-offset_bottom = -30.666672
-theme_override_fonts/font = ExtResource("4_h6fwi")
-theme_override_font_sizes/font_size = 12
-text = "5 Hearts
-If captured, swap any card in hand 
-with one of your opponent's"
+offset_bottom = -41.5
+theme_override_constants/outline_size = 32
+theme_override_fonts/normal_font = ExtResource("4_h6fwi")
+theme_override_font_sizes/normal_font_size = 8
+bbcode_enabled = true
+text = "[font_size=16]4 Diamonds[/font_size]
+Shuffle the opponents deck."
 horizontal_alignment = 1
+vertical_alignment = 2

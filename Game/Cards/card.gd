@@ -17,5 +17,11 @@ func _get_card_spr_index() -> int:
 func _get_card_value() -> int:
 	assert(false, "_get_card_spr_index unimplemented");
 	return 0
-		
-	# TODO: CardEffects
+
+func _describe_card() -> String:
+	assert(false, "_describe_card unimplemented");
+	return ""
+
+func _describe_ability() -> StringName:
+	assert(false, "_describe_ability unimplemented");
+	return ""

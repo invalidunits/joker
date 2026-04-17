@@ -239,7 +239,7 @@ text = "View Previous Matches"
 
 [node name="Button3" type="Button" parent="SubMenus/Main Menu/VBoxContainer" unique_id=1853612293]
 layout_mode = 2
-text = "View Card Almaniac"
+text = "View Card Collection"
 
 [node name="QuitButton" type="Button" parent="SubMenus/Main Menu/VBoxContainer" unique_id=671927834]
 layout_mode = 2
