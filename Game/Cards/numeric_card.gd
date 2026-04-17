@@ -25,14 +25,12 @@ func _describe_suite() -> StringName:
 func _describe_card() -> String:
 	if suite == CardSuite.Special and number == 2:
 		return &"Joker"
-	var name = str(number)
 	match number:
 		1: return "Ace of " + _describe_suite()
-		11: name = "Jack " + _describe_suite()
-		12: name = "Queen " + _describe_suite()
-		13: name = "King " + _describe_suite()
-		_: return name + " " + _describe_suite()
-	return name + "of "
+		11: return "Jack of" + _describe_suite()
+		12: return "Queen of" + _describe_suite()
+		13: return "King of" + _describe_suite()
+		_: return str(number) + " " + _describe_suite()
 
 func _describe_ability() -> StringName:
 	if suite == CardSuite.Special and number == 2:

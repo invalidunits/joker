@@ -1,9 +1,5 @@
-res://GUI/Menus/MainMenu.tscn
-res://Scenes/online_match_session.gd
-res://Scenes/online_game.gd
-res://Scenes/Game.tscn
+res://GUI/gui/Deck.tscn
 res://Scenes/Online.tscn
-res://GUI/gui/CardDisplayer.tscn
-res://Game/Cards/card_displayer.gd
-res://Game/Cards/card.gd
-res://Game/Cards/numeric_card.gd
+res://Scenes/online_game.gd
+res://GUI/gui/PlayerTable.tscn
+res://Scenes/Game.tscn

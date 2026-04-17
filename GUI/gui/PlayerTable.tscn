@@ -2,30 +2,56 @@
 
 [ext_resource type="PackedScene" uid="uid://dl77q1ufi8xlv" path="res://GUI/gui/Deck.tscn" id="1_d2bvn"]
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="2_3s0qg"]
+[ext_resource type="Script" uid="uid://yr2aj74dgjnx" path="res://Game/Cards/card_back.gd" id="2_nusuo"]
+
+[sub_resource type="Resource" id="Resource_sjlrx"]
+script = ExtResource("2_nusuo")
+metadata/_custom_type_script = "uid://yr2aj74dgjnx"
 
 [sub_resource type="Resource" id="Resource_nusuo"]
 script = ExtResource("2_3s0qg")
 suite = -1
 metadata/_custom_type_script = "uid://brhe14r13f4vc"
 
+[sub_resource type="Resource" id="Resource_x7pw1"]
+script = ExtResource("2_nusuo")
+metadata/_custom_type_script = "uid://yr2aj74dgjnx"
+
+[sub_resource type="Resource" id="Resource_0k6xl"]
+script = ExtResource("2_nusuo")
+metadata/_custom_type_script = "uid://yr2aj74dgjnx"
+
+[sub_resource type="Resource" id="Resource_e1olg"]
+script = ExtResource("2_nusuo")
+metadata/_custom_type_script = "uid://yr2aj74dgjnx"
+
+[sub_resource type="Resource" id="Resource_esak6"]
+script = ExtResource("2_nusuo")
+metadata/_custom_type_script = "uid://yr2aj74dgjnx"
+
 [node name="PlayerTable" type="Node3D" unique_id=129488746]
 
 [node name="Deck" parent="." unique_id=1703109956 instance=ExtResource("1_d2bvn")]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -1.0451779, 0.0154079795, 0.17111456)
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -0.9183632, 0.0154079795, -0.005897641)
+top_card = SubResource("Resource_sjlrx")
 middle_card = SubResource("Resource_nusuo")
-pile_size = 1
 
 [node name="LPlace" parent="." unique_id=649405649 instance=ExtResource("1_d2bvn")]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -0.5261309, 0.0154079795, 0.69586533)
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -0.5261309, 0.0154079795, 0.54791486)
+top_card = SubResource("Resource_x7pw1")
 middle_card = SubResource("Resource_nusuo")
-pile_size = 1
 
 [node name="MPlace" parent="." unique_id=1585055954 instance=ExtResource("1_d2bvn")]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -0.035603076, 0.0154079795, 0.69586533)
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, -0.035603076, 0.0154079795, 0.54791486)
+top_card = SubResource("Resource_0k6xl")
 middle_card = SubResource("Resource_nusuo")
-pile_size = 1
 
 [node name="RPlace" parent="." unique_id=1649147933 instance=ExtResource("1_d2bvn")]
-transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, 0.4720361, 0.0154079795, 0.69586533)
+transform = Transform3D(1, 0, 0, 0, -4.3711385e-08, 0.99999994, 0, -0.99999994, -4.3711385e-08, 0.4720361, 0.0154079795, 0.54791486)
+top_card = SubResource("Resource_e1olg")
 middle_card = SubResource("Resource_nusuo")
-pile_size = 1
+
+[node name="WarPlace" parent="." unique_id=1129912711 instance=ExtResource("1_d2bvn")]
+transform = Transform3D(0.18223552, -0.98325485, -4.2979433e-08, 0, -4.371138e-08, 0.9999999, -0.98325485, -0.1822355, -7.965767e-09, 0.21155763, 0.0154079795, 0.023729146)
+middle_card = SubResource("Resource_esak6")
+pile_size = 26

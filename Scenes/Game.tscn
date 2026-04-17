@@ -2,10 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://cy028omhe3ahx" path="res://GUI/gui/OpponentCardGraphics.tscn" id="1_b2bpf"]
 [ext_resource type="PackedScene" uid="uid://cmttygqhd40vk" path="res://GUI/gui/CardDisplayer.tscn" id="2_7lihs"]
+[ext_resource type="Script" uid="uid://bthcwudf3j5yt" path="res://GUI/gui/CardListContainer.gd" id="2_fgofq"]
+[ext_resource type="Script" uid="uid://ds365012jq1li" path="res://GUI/gui/card_list.gd" id="3_7lihs"]
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="3_fgofq"]
-[ext_resource type="Script" uid="uid://y5pqw7oybird" path="res://GUI/gui/CardSelector.gd" id="4_2irst"]
-[ext_resource type="Script" uid="uid://2dkdgsf63c5s" path="res://card_list.gd" id="5_bf53h"]
 [ext_resource type="PackedScene" uid="uid://c8irbin8nkjc3" path="res://GUI/gui/PlayerTable.tscn" id="6_7lihs"]
+[ext_resource type="FontFile" uid="uid://3li0yrr0uw4d" path="res://GUI/Poco.ttf" id="6_fgofq"]
 
 [sub_resource type="Animation" id="Animation_fc0e3"]
 resource_name = "LookAtTable"
@@ -95,20 +96,21 @@ _data = {
 script/source = "extends AnimationPlayer
 
 
-var looking_at_table:bool
+var looking_at_table:Array = []
 var last_animation:String
 
 func _process(delta: float) -> void:
+	var look = not looking_at_table.is_empty()
 	var current_anim_pos = 0.0
 	if is_playing():
 		current_anim_pos = current_animation_position
 	else:
 		current_anim_pos = 1.0 if last_animation == \"LookAtTableF\" else 0.0
 		
-	if looking_at_table and (not is_playing() or current_anim_pos < 1.0):
+	if look and (not is_playing() or current_anim_pos < 1.0):
 		if not is_equal_approx(current_anim_pos, 1.0):
 			play_section(&\"LookAtTable\", current_anim_pos, 1.0, -1, 1.0, false)
-	elif not looking_at_table and last_animation == &\"LookAtTableF\":
+	elif not look and last_animation == &\"LookAtTableF\":
 		if not is_equal_approx(current_anim_pos, 0.0):
 			play_section_backwards(&\"LookAtTable\", 0.0, current_anim_pos)
 	
@@ -145,7 +147,9 @@ script/source = "extends Control
 func _process(delta: float) -> void:
 	var mouse := get_global_mouse_position();
 	var looking_at_table = get_rect().has_point(mouse);
-	animation_player.looking_at_table = looking_at_table
+	animation_player.looking_at_table.erase(self)
+	if looking_at_table:
+		animation_player.looking_at_table.append(self)
 "
 
 [node name="Game" type="Node" unique_id=1292748270]
@@ -209,10 +213,10 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -415.0
+offset_top = -241.0
 grow_horizontal = 2
 grow_vertical = 0
-script = ExtResource("4_2irst")
+script = ExtResource("2_fgofq")
 speed = 0.3
 acceleration = 0.5
 
@@ -221,7 +225,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
 theme_override_constants/margin_bottom = 149
-script = ExtResource("5_bf53h")
+script = ExtResource("3_7lihs")
 offset = -0.6
 card_distance = 80.0
 radius = 800.0
@@ -265,11 +269,75 @@ card = SubResource("Resource_fc0e3")
 
 [node name="LookAtDeck" type="Control" parent="UI" unique_id=1201037312]
 layout_mode = 3
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 207.0
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -441.0
+offset_right = 485.0
+offset_bottom = -302.0
 grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 script = SubResource("GDScript_fc0e3")
+
+[node name="ChooseTop5" type="VBoxContainer" parent="UI" unique_id=2082462970]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -258.5
+offset_top = -179.0
+offset_right = 258.5
+offset_bottom = 117.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 106
+
+[node name="Label" type="Label" parent="UI/ChooseTop5" unique_id=1369145852]
+layout_mode = 2
+theme_override_constants/outline_size = 9
+theme_override_fonts/font = ExtResource("6_fgofq")
+theme_override_font_sizes/font_size = 34
+text = "Choose one to place in your hand"
+horizontal_alignment = 1
+
+[node name="CardSelector" type="MarginContainer" parent="UI/ChooseTop5" unique_id=582556772]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme_override_constants/margin_bottom = 149
+script = ExtResource("3_7lihs")
+card_distance = 150.0
+radius = 90000.0
+selecting = false
+
+[node name="CardDisplayer5" parent="UI/ChooseTop5/CardSelector" unique_id=105394874 instance=ExtResource("2_7lihs")]
+position = Vector2(-222.59946, 0.00030586787)
+rotation = -0.00247333
+frame = 1
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer6" parent="UI/ChooseTop5/CardSelector" unique_id=431814394 instance=ExtResource("2_7lihs")]
+position = Vector2(-72.59946, 3.2535074e-05)
+rotation = -0.00080666074
+frame = 1
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer7" parent="UI/ChooseTop5/CardSelector" unique_id=2146073270 instance=ExtResource("2_7lihs")]
+position = Vector2(77.40054, 3.6980528e-05)
+rotation = 0.00086000614
+frame = 1
+card = SubResource("Resource_fc0e3")
+
+[node name="CardDisplayer8" parent="UI/ChooseTop5/CardSelector" unique_id=2024050181 instance=ExtResource("2_7lihs")]
+position = Vector2(227.40054, 0.00031920426)
+rotation = 0.0025266754
+frame = 1
+card = SubResource("Resource_fc0e3")
 
 [node name="Tables" type="Node3D" parent="." unique_id=1521527310]
 

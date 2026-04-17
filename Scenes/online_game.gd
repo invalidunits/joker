@@ -1,8 +1,12 @@
 extends Node
 
 
-const OnlineMatchSession = preload("res://Scenes/online_match_session.gd")
+const MatchSessionState = preload("res://Scenes/online_match_session.gd")
 const CARD_DISPLAYER_SCENE = preload("res://GUI/gui/CardDisplayer.tscn")
+const CARD_BACK_SCRIPT = preload("res://Game/Cards/card_back.gd")
+const CARD_LIST_OFFSET_META_KEY := "cardListOffset"
+const PRE_ROUND_REVEAL_SECONDS := 1.5
+const PRE_ROUND_CAPTURE_TWEEN_SECONDS := 0.42
 
 @export var backend_base_url: String = ""
 @export var match_id: String = ""
@@ -10,46 +14,61 @@ const CARD_DISPLAYER_SCENE = preload("res://GUI/gui/CardDisplayer.tscn")
 
 var _socket: WebSocketPeer
 var _awaiting_turn: bool = false
+var _awaiting_war_turn: bool = false
+var _war_selected_cards: Array[int] = []
+var _war_needed_count: int = 4
 var _closing_expected: bool = false
 var _player_index: int = -1
 var _current_turn: int = 0
 var _current_hand: PackedByteArray = PackedByteArray()
 var _round_start_unix: float = -1.0
 var _choice_cards: Array[int] = []
+var _last_sent_card_list_offset: float = 0
+var _choose_top_five_rest_position: Vector2
+var _choose_top_five_hidden_position: Vector2
+var _choose_top_five_tween: Tween
 
 @onready var _card_list: MarginContainer = $Game/UI/Container/CardList
+@onready var _opponent_card_list: MarginContainer = $Game/OtherPlayer/OpponentCardGraphics/CardList
 @onready var _status_label: Label = $Overlay/MarginContainer/PanelContainer/VBoxContainer/StatusLabel
 @onready var _detail_label: Label = $Overlay/MarginContainer/PanelContainer/VBoxContainer/DetailLabel
 @onready var _back_button: Button = $Overlay/MarginContainer/PanelContainer/VBoxContainer/BackButton
-@onready var _choice_panel: PanelContainer = $Overlay/ChoicePanel
-@onready var _choice_label: Label = $Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceLabel
-@onready var _choice_buttons: Array[Button] = [
-	$Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceButtons/Choice0,
-	$Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceButtons/Choice1,
-	$Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceButtons/Choice2,
-	$Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceButtons/Choice3,
-	$Overlay/ChoicePanel/MarginContainer/VBoxContainer/ChoiceButtons/Choice4,
-]
+@onready var _choose_top_five: VBoxContainer = $Game/UI/ChooseTop5
+@onready var _card_selector: MarginContainer = $Game/UI/ChooseTop5/CardSelector
 @onready var _my_table: Node3D = $Game/Tables/MyTable
 @onready var _their_table: Node3D = $Game/Tables/TheirTable
+@onready var _camera_animator: AnimationPlayer = $Game/Node3D/AnimationPlayer
 
 
 func _ready() -> void:
+	_card_list.played_card.connect(_on_card_clicked)
+	_card_selector.played_card.connect(_on_top_five_card_clicked)
 	_back_button.pressed.connect(_return_to_menu)
-	for index in range(_choice_buttons.size()):
-		_choice_buttons[index].pressed.connect(_on_choice_button_pressed.bind(index))
-	_choice_panel.visible = false
+	_choose_top_five_rest_position = _choose_top_five.position
+	_choose_top_five_hidden_position = Vector2(
+		_choose_top_five_rest_position.x,
+		_choose_top_five_rest_position.y - get_viewport().get_visible_rect().size.y
+	)
+	_hide_choose_top_five(true)
+	_card_selector.selecting = false
 	_clear_sample_hand()
+	_opponent_card_list.selecting = false
 	_load_match_session()
 	if backend_base_url.is_empty() or match_id.is_empty():
 		_show_connection_error("Missing matchmaking session")
 		return
 	_connect_to_match()
+	_game_loop()
 
-
-func _process(_delta: float) -> void:
+func _process(delta:float):
 	_update_round_countdown()
-	_poll_socket()
+	_sync_card_list_metadata()
+
+func _game_loop():
+	while true:
+		if get_tree() == null: break
+		await get_tree().process_frame
+		await _poll_socket()
 
 
 func _exit_tree() -> void:
@@ -58,9 +77,9 @@ func _exit_tree() -> void:
 
 func _load_match_session() -> void:
 	if backend_base_url.is_empty():
-		backend_base_url = OnlineMatchSession.backend_base_url
+		backend_base_url = MatchSessionState.backend_base_url
 	if match_id.is_empty():
-		match_id = OnlineMatchSession.match_id
+		match_id = MatchSessionState.match_id
 
 
 func _connect_to_match() -> void:
@@ -85,7 +104,9 @@ func _poll_socket() -> void:
 	if state == WebSocketPeer.STATE_OPEN:
 		while _socket.get_available_packet_count() > 0:
 			var payload := _socket.get_packet().get_string_from_utf8()
-			_handle_payload(payload)
+			await _handle_payload(payload)
+			if _socket == null:
+				return
 	elif state == WebSocketPeer.STATE_CLOSED and not _closing_expected:
 		var reason := _socket.get_close_reason()
 		if reason.is_empty():
@@ -110,18 +131,45 @@ func _handle_payload(payload: String) -> void:
 			_handle_round_start(message)
 		"hand":
 			_handle_hand(message)
+		"requestWarTurn":
+			_handle_war_turn_request(message)
+		"warProgress":
+			_handle_war_progress(message)
+		"warReveal":
+			_handle_war_reveal(message)
 		"requestTurn":
 			_handle_turn_request(message)
 		"opponentPlayed":
 			_handle_opponent_played(message)
+		"preroundresult":
+			_handle_preround_result(message)
 		"roundResult":
-			_handle_round_result(message, false)
+			await _handle_round_result(message, false)
 		"jokerBurn":
-			_handle_round_result(message, true)
+			await _handle_round_result(message, true)
 		"chooseTopFive":
 			_handle_choose_top_five(message)
+		"meta":
+			_handle_meta(message)
 		"matchEnded":
 			_handle_match_ended(message)
+
+
+func _handle_meta(message: Dictionary) -> void:
+	var sender = message.get("from", null)
+	if typeof(sender) == TYPE_DICTIONARY:
+		var sender_player = sender.get("player", null)
+		if sender_player != null and int(sender_player) == _player_index:
+			return
+
+	var data = message.get("data", null)
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+
+	if not data.has(CARD_LIST_OFFSET_META_KEY):
+		return
+
+	_opponent_card_list.set("offset", float(data[CARD_LIST_OFFSET_META_KEY]))
 
 
 func _handle_round_start(message: Dictionary) -> void:
@@ -135,12 +183,88 @@ func _handle_hand(message: Dictionary) -> void:
 	_player_index = int(message.get("player", _player_index))
 	_current_hand = Marshalls.base64_to_raw(str(message.get("hand", "")))
 	_render_hand()
+	_render_opponent_hand(int(message.get("opponentHandLen", 0)))
 	_set_status("Hand updated", "Deck remaining: %s" % str(int(message.get("decklen", 0))))
 
-
+	
 func _handle_turn_request(message: Dictionary) -> void:
 	_current_turn = int(message.get("turn", _current_turn))
 	_awaiting_turn = true
+	_clear_played_cards()
+	_card_list.selecting = true
+	_set_hand_interactable(true)
+	var first_player = message.get("firstPlayer", null)
+	if first_player == null:
+		_set_status("Choose a card", "Turn %s" % str(_current_turn))
+	elif int(first_player) == _player_index:
+		_set_status("Play first", "Turn %s" % str(_current_turn))
+	else:
+		_set_status("Waiting for opponent", "Turn %s" % str(_current_turn))
+
+func _handle_war_turn_request(_message: Dictionary) -> void:
+	_war_selected_cards.clear()
+	_war_needed_count = mini(_current_hand.size(), 4)
+	if _war_needed_count == 0:
+		# No hand cards — server draws all from deck, submit immediately
+		_send_json({"type": "warTurn", "cards": []})
+		_set_status("War!", "Drawing from deck...")
+		return
+	_awaiting_war_turn = true
+	_card_list.selecting = true
+	_set_hand_interactable(true)
+	_update_war_status()
+
+
+func _handle_war_progress(message: Dictionary) -> void:
+	if _player_index < 0:
+		return
+
+	var player := int(message.get("player", -1))
+	var slot := int(message.get("slot", -1))
+	if player < 0 or player == _player_index:
+		return
+
+	var place_names := ["LPlace", "MPlace", "RPlace", "WarPlace"]
+	if slot < 0 or slot >= place_names.size():
+		return
+
+	var table := _table_for_backend_player(player)
+	if table == null:
+		return
+
+	var place := table.get_node_or_null(place_names[slot])
+	if place == null:
+		return
+
+	var card_value = message.get("card", null)
+	if card_value != null:
+		place.top_card = _make_card_resource(int(card_value))
+		place.middle_card = _make_card_resource(int(card_value))
+	else:
+		place.top_card = _make_card_back()
+		place.middle_card = _make_card_back()
+	place.pile_size += 1
+
+
+func _handle_war_reveal(message: Dictionary) -> void:
+	var cards = message.get("cards", [])
+	if typeof(cards) != TYPE_ARRAY or cards.size() < 2:
+		return
+	for backend_player in [0, 1]:
+		var table := _table_for_backend_player(backend_player)
+		if table == null:
+			continue
+		var place: Node3D = table.get_node_or_null("WarPlace")
+		if place == null:
+			continue
+		var card_value := int(cards[backend_player])
+		place.top_card = _make_card_resource(card_value)
+		place.middle_card = _make_card_resource(card_value)
+
+
+	_current_turn = int(message.get("turn", _current_turn))
+	_awaiting_turn = true
+	_clear_played_cards()
 	_card_list.selecting = true
 	_set_hand_interactable(true)
 	var first_player = message.get("firstPlayer", null)
@@ -154,26 +278,35 @@ func _handle_turn_request(message: Dictionary) -> void:
 
 func _handle_opponent_played(message: Dictionary) -> void:
 	var player := int(message.get("player", -1))
+	if _player_index >= 0 and player != _player_index:
+		_render_opponent_hand(maxi(_opponent_card_list.get_child_count() - 1, 0))
 	var card = message.get("card", null)
 	if card == null:
+		_set_played_card(player, 0, false)
 		_set_status("Opponent played", "Waiting for reveal")
 		return
 
-	_set_played_card(player, int(card))
+	_set_played_card(player, int(card), true)
 	_set_status("Opponent card revealed", _describe_card(int(card)))
 
 
 func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
 	_awaiting_turn = false
+	_awaiting_war_turn = false
+	_war_selected_cards.clear()
 	_set_hand_interactable(false)
 	_card_list.selecting = false
-	_choice_panel.visible = false
-	var round = message.get("round", {})
-	if typeof(round) == TYPE_DICTIONARY:
-		var played = round.get("Played", [])
+	_hide_choose_top_five()
+	_card_selector.selecting = false
+	var winner := int(message.get("winner", -1))
+	await _play_pre_round_capture_sequence(winner, not is_joker_burn)
+
+	var round_data = message.get("round", {})
+	if typeof(round_data) == TYPE_DICTIONARY:
+		var played = round_data.get("Played", [])
 		if typeof(played) == TYPE_ARRAY and played.size() >= 2:
-			_set_played_card(0, int(played[0]))
-			_set_played_card(1, int(played[1]))
+			_set_played_card(0, int(played[0]), true)
+			_set_played_card(1, int(played[1]), true)
 
 	var remaining = message.get("remaining", [])
 	if typeof(remaining) == TYPE_ARRAY and remaining.size() >= 2 and _player_index >= 0:
@@ -187,11 +320,30 @@ func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
 		_set_status("Round burned", "A joker removed the pile")
 		return
 
-	var winner := int(message.get("winner", -1))
 	if winner == _player_index:
 		_set_status("Round won", _detail_label.text)
 	elif winner >= 0:
 		_set_status("Round lost", _detail_label.text)
+
+
+func _handle_preround_result(message: Dictionary) -> void:
+	if _player_index < 0:
+		return
+
+	var played = message.get("played", [])
+	if typeof(played) != TYPE_ARRAY or played.size() < 2:
+		return
+
+	_set_played_card(0, int(played[0]), true)
+	_set_played_card(1, int(played[1]), true)
+
+	var winner := int(message.get("winner", -1))
+	if winner == _player_index:
+		_set_status("Cards revealed", "You take this trick")
+	elif winner >= 0:
+		_set_status("Cards revealed", "Opponent takes this trick")
+	else:
+		_set_status("Cards revealed", "War continues")
 
 
 func _handle_choose_top_five(message: Dictionary) -> void:
@@ -203,14 +355,18 @@ func _handle_choose_top_five(message: Dictionary) -> void:
 	for value in cards:
 		_choice_cards.append(int(value))
 
-	_choice_panel.visible = true
-	_choice_label.text = "Choose which card moves to the top of your deck"
-	for index in range(_choice_buttons.size()):
-		var button := _choice_buttons[index]
-		button.visible = index < _choice_cards.size()
-		button.disabled = index >= _choice_cards.size()
-		if index < _choice_cards.size():
-			button.text = _describe_card(_choice_cards[index])
+	_clear_card_list(_card_selector)
+	for index in range(_choice_cards.size()):
+		var displayer := CARD_DISPLAYER_SCENE.instantiate()
+		if displayer == null:
+			continue
+
+		displayer.card = _make_card_resource(_choice_cards[index])
+		displayer.set_meta("choice_index", index)
+		_card_selector.add_child(displayer)
+
+	_show_choose_top_five()
+	_card_selector.selecting = true
 
 	_set_status("Card effect", "Choose from the top of your deck")
 
@@ -218,7 +374,8 @@ func _handle_choose_top_five(message: Dictionary) -> void:
 func _handle_match_ended(message: Dictionary) -> void:
 	_awaiting_turn = false
 	_set_hand_interactable(false)
-	_choice_panel.visible = false
+	_hide_choose_top_five()
+	_card_selector.selecting = false
 	var winner := int(message.get("winner", -1))
 	var reason := str(message.get("reason", "unknown"))
 	if winner < 0:
@@ -231,30 +388,72 @@ func _handle_match_ended(message: Dictionary) -> void:
 
 
 func _render_hand() -> void:
-	CardDisplayer.reset_play_lock()
-	for child in _card_list.get_children():
-		child.queue_free()
-
+	_clear_card_list(_card_list)
+		
 	for index in range(_current_hand.size()):
-		var displayer := CARD_DISPLAYER_SCENE.instantiate() as CardDisplayer
+		var displayer := CARD_DISPLAYER_SCENE.instantiate()
 		if displayer == null:
 			continue
 
 		displayer.card = _make_card_resource(_current_hand[index])
-		displayer.auto_play_on_click = false
-		displayer.input_enabled = _awaiting_turn
-		displayer.card_clicked.connect(_on_card_clicked)
 		displayer.set_meta("hand_index", index)
 		_card_list.add_child(displayer)
 
 
-func _on_card_clicked(displayer: CardDisplayer) -> void:
+func _render_opponent_hand(card_count: int) -> void:
+	_clear_card_list(_opponent_card_list)
+	_opponent_card_list.selecting = false
+
+	for _index in range(maxi(card_count, 0)):
+		var displayer := CARD_DISPLAYER_SCENE.instantiate()
+		if displayer == null:
+			continue
+
+		displayer.card = _make_card_back()
+		displayer.selected = 0.0
+		var label := displayer.get_node_or_null("Label")
+		if label != null:
+			label.visible = false
+		_opponent_card_list.add_child(displayer)
+
+
+func _on_card_clicked(_index:int, displayer: CardDisplayer) -> void:
+	var card_index = int(displayer.get_meta("hand_index", -1))
+	if card_index < 0 or card_index >= _current_hand.size():
+		return
+
+	if _awaiting_war_turn:
+		var card_value := int(_current_hand[card_index])
+		_war_selected_cards.append(card_value)
+		_send_json({
+			"type": "warTurn",
+			"cards": [card_value],
+		})
+		displayer.queue_free()
+
+		# Show on the appropriate place
+		var place_names := ["LPlace", "MPlace", "RPlace", "WarPlace"]
+		var slot := _war_selected_cards.size() - 1
+		if slot < place_names.size():
+			var place := _my_table.get_node_or_null(place_names[slot])
+			if place != null:
+				place.top_card = _make_card_resource(card_value)
+				place.middle_card = _make_card_resource(card_value)
+				place.pile_size += 1
+
+		if _war_selected_cards.size() >= _war_needed_count:
+			_awaiting_war_turn = false
+			_set_hand_interactable(false)
+			_card_list.selecting = false
+			_set_status("War cards submitted", "Waiting for opponent...")
+		else:
+			_update_war_status()
+		return
+
 	if not _awaiting_turn:
 		return
 
-	var card_index = int(displayer.get_meta("hand_index", -1))
-	if card_index < 0:
-		return
+	_set_played_card(_player_index, int(_current_hand[card_index]), true)
 
 	_send_json({
 		"type": "turn",
@@ -263,29 +462,59 @@ func _on_card_clicked(displayer: CardDisplayer) -> void:
 	_awaiting_turn = false
 	_set_hand_interactable(false)
 	_card_list.selecting = false
-	displayer.play_card()
+	displayer.queue_free();
 	_set_status("Turn submitted", "Waiting for opponent")
 
 
-func _on_choice_button_pressed(index: int) -> void:
-	if index < 0 or index >= _choice_cards.size():
+func _on_top_five_card_clicked(_index: int, displayer: CardDisplayer) -> void:
+	var choice_index := int(displayer.get_meta("choice_index", -1))
+	if choice_index < 0 or choice_index >= _choice_cards.size():
 		return
 
 	_send_json({
 		"type": "effectChoice",
-		"choice": index,
+		"choice": choice_index,
 	})
-	_choice_panel.visible = false
-	_set_status("Choice sent", _describe_card(_choice_cards[index]))
+	_hide_choose_top_five()
+	_card_selector.selecting = false
+	_set_status("Choice sent", _describe_card(_choice_cards[choice_index]))
+
+
+func _show_choose_top_five() -> void:
+	if _choose_top_five_tween != null and _choose_top_five_tween.is_valid():
+		_choose_top_five_tween.kill()
+
+	_choose_top_five.visible = true
+	_choose_top_five.position = _choose_top_five_hidden_position
+	_choose_top_five_tween = create_tween()
+	_choose_top_five_tween.set_trans(Tween.TRANS_CUBIC)
+	_choose_top_five_tween.set_ease(Tween.EASE_OUT)
+	_choose_top_five_tween.tween_property(_choose_top_five, "position", _choose_top_five_rest_position, 0.3)
+
+
+func _hide_choose_top_five(immediate: bool = false) -> void:
+	if _choose_top_five_tween != null and _choose_top_five_tween.is_valid():
+		_choose_top_five_tween.kill()
+
+	if immediate:
+		_choose_top_five.position = _choose_top_five_hidden_position
+		_choose_top_five.visible = false
+		return
+
+	_choose_top_five_tween = create_tween()
+	_choose_top_five_tween.set_trans(Tween.TRANS_CUBIC)
+	_choose_top_five_tween.set_ease(Tween.EASE_IN)
+	_choose_top_five_tween.tween_property(_choose_top_five, "position", _choose_top_five_hidden_position, 0.22)
+	_choose_top_five_tween.finished.connect(func() -> void:
+		_choose_top_five.visible = false
+	)
 
 
 func _set_hand_interactable(enabled: bool) -> void:
-	for child in _card_list.get_children():
-		if child is CardDisplayer:
-			child.input_enabled = enabled
+	_card_list.selecting = enabled;
 
 
-func _set_played_card(player: int, backend_card: int) -> void:
+func _set_played_card(player: int, backend_card: int, revealed: bool = true) -> void:
 	if _player_index < 0:
 		return
 
@@ -294,9 +523,114 @@ func _set_played_card(player: int, backend_card: int) -> void:
 	if place == null:
 		return
 
+	if not revealed:
+		place.top_card = _make_card_back()
+		place.middle_card = _make_card_back()
+		place.pile_size = 1
+		return
+
 	place.top_card = _make_card_resource(backend_card)
 	place.middle_card = _make_card_resource(backend_card)
 	place.pile_size = 1
+
+
+func _clear_played_cards() -> void:
+	for table in [_my_table, _their_table]:
+		for place_name in ["MPlace", "LPlace", "RPlace", "WarPlace"]:
+			var place: Node3D = table.get_node_or_null(place_name)
+			if place == null:
+				continue
+			place.pile_size = 0
+
+
+func _update_war_status() -> void:
+	var selected := _war_selected_cards.size()
+	var total := _war_needed_count
+	var sacrifices_needed := mini(total - 1, 3)
+	if selected < sacrifices_needed:
+		var left := sacrifices_needed - selected
+		_set_status("War! Select sacrifice %d/%d" % [selected + 1, sacrifices_needed], "Pick a card to sacrifice")
+	else:
+		_set_status("War! Select your war card", "This card battles the opponent")
+
+
+func _set_looking_at_table(enabled: bool) -> void:
+	if _camera_animator == null:
+		return
+	_camera_animator.set("looking_at_table", enabled)
+
+
+func _table_for_backend_player(player: int) -> Node3D:
+	if _player_index < 0:
+		return null
+	return _my_table if player == _player_index else _their_table
+
+
+func _play_pre_round_capture_sequence(winner: int, capture_to_deck: bool) -> void:
+	_camera_animator.looking_at_table.append(self)
+	await get_tree().create_timer(PRE_ROUND_REVEAL_SECONDS).timeout
+	if not capture_to_deck or winner < 0:
+		return
+	await _tween_played_cards_to_winner_deck(winner)
+	_camera_animator.looking_at_table.erase(self)
+
+
+func _tween_played_cards_to_winner_deck(winner: int) -> void:
+	var winner_table := _table_for_backend_player(winner)
+	if winner_table == null:
+		return
+	var winner_deck: Node3D = winner_table.get_node_or_null("Deck")
+	if winner_deck == null:
+		return
+	var capture_root := winner_table.get_parent() as Node3D
+	if capture_root == null:
+		return
+
+	var flying_cards: Array[Node3D] = []
+	var source_places: Array[Node3D] = []
+	for backend_player in [0, 1]:
+		var table := _table_for_backend_player(backend_player)
+		if table == null:
+			continue
+		for place_name in ["LPlace", "MPlace", "RPlace", "WarPlace"]:
+			var place: Node3D = table.get_node_or_null(place_name)
+			if place == null:
+				continue
+			if place.get_child_count() <= 0:
+				continue
+
+			source_places.append(place)
+			while place.get_child_count() > 0:
+				var displayer: Node3D = place.get_child(place.get_child_count() - 1)
+				if displayer == null:
+					break
+
+				var original_transform := displayer.global_transform
+				displayer.reparent(capture_root)
+				displayer.top_level = true
+				displayer.global_transform = original_transform
+				flying_cards.append(displayer)
+
+	if flying_cards.is_empty():
+		return
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN)
+
+	for index in range(flying_cards.size()):
+		var displayer := flying_cards[index]
+		var target := winner_deck.global_position + Vector3(0.0, 0.12 + float(index) * 0.02, 0.0)
+		tween.tween_property(displayer, "global_position", target, PRE_ROUND_CAPTURE_TWEEN_SECONDS)
+		tween.tween_property(displayer, "scale", displayer.scale * 0.2, PRE_ROUND_CAPTURE_TWEEN_SECONDS)
+
+	await tween.finished
+	for displayer in flying_cards:
+		displayer.queue_free()
+	for place in source_places:
+		place.pile_size = 0
+
 
 
 func _set_deck_size(table: Node3D, total_cards: int) -> void:
@@ -304,7 +638,7 @@ func _set_deck_size(table: Node3D, total_cards: int) -> void:
 	if deck == null:
 		return
 
-	deck.pile_size = mini(total_cards, 20)
+	deck.pile_size = mini(total_cards, 200)
 
 
 func _make_card_resource(card_value: int) -> Card:
@@ -330,6 +664,10 @@ func _make_card_resource(card_value: int) -> Card:
 
 	card.number = 1 if backend_number == 14 else clampi(backend_number, 1, 13)
 	return card
+
+
+func _make_card_back() -> Card:
+	return CARD_BACK_SCRIPT.new()
 
 
 func _describe_card(card_value: int) -> String:
@@ -363,6 +701,24 @@ func _send_json(payload: Dictionary) -> void:
 	_socket.send_text(JSON.stringify(payload))
 
 
+func _send_meta(payload: Dictionary) -> void:
+	_send_json({
+		"type": "meta",
+		"data": payload,
+	})
+
+
+func _sync_card_list_metadata() -> void:
+	var current_offset := float(_card_list.get("offset"))
+	if is_equal_approx(current_offset, _last_sent_card_list_offset):
+		return
+
+	_last_sent_card_list_offset = current_offset
+	_send_meta({
+		CARD_LIST_OFFSET_META_KEY: current_offset,
+	})
+
+
 func _set_status(title: String, detail: String) -> void:
 	_status_label.text = title
 	_detail_label.text = detail
@@ -375,9 +731,15 @@ func _show_connection_error(message: String) -> void:
 
 
 func _clear_sample_hand() -> void:
-	for child in _card_list.get_children():
-		child.queue_free()
+	_clear_card_list(_card_list)
+	_clear_card_list(_opponent_card_list)
 	_card_list.selecting = false
+	_opponent_card_list.selecting = false
+
+
+func _clear_card_list(card_list: MarginContainer) -> void:
+	for child in card_list.get_children():
+		child.queue_free()
 
 
 func _close_socket(code: int, reason: String) -> void:
@@ -423,6 +785,6 @@ func _format_countdown_text() -> String:
 
 
 func _return_to_menu() -> void:
-	OnlineMatchSession.clear_match()
+	MatchSessionState.clear_match()
 	_close_socket(1000, "return-menu")
 	get_tree().change_scene_to_file(menu_scene_path)

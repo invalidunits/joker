@@ -15,7 +15,7 @@ var radius:float = 100;
 @export
 var radius_distance:float = 100;
 
-var selected_card = 0
+var selected_card = -1
 
 @export
 var selecting:bool = true
@@ -68,6 +68,7 @@ func _process(delta: float) -> void:
 		
 		if selecting and i == selected_card:
 			var is_hovered = local_mouse.distance_squared_to(node.position) < 10000
+			if not is_hovered: selected_card = -1
 			node.selected = lerp(node.selected, float(is_hovered), delta * 8)
 		else:
 			node.selected = lerp(node.selected, 0.0, delta * 8)
@@ -84,7 +85,7 @@ func _get_selected_card_displayer() -> CardDisplayer:
 		return null
 	return get_child(selected_card) as CardDisplayer
 
-signal played_card(index:int, card:Card)
+signal played_card(index:int, card:CardDisplayer)
 func _input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
@@ -97,4 +98,4 @@ func _input(event: InputEvent) -> void:
 	if card_displayer == null:
 		return
 	
-	played_card.emit(selected_card, card_displayer.card)
+	played_card.emit(selected_card, card_displayer)

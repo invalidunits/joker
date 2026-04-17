@@ -4,6 +4,9 @@
 script/source = "@tool
 extends Node3D
 
+const TWEEN_RAISE := 0.08
+const TWEEN_DURATION := 0.18
+
 @export var top_card: Card:
 	set(value):
 		top_card = value
@@ -14,20 +17,22 @@ extends Node3D
 		_rebuild_pile()
 @export var pile_size: int = 1:
 	set(value):
+		var grew := value > pile_size and not Engine.is_editor_hint()
 		pile_size = value
-		_rebuild_pile()
+		_rebuild_pile(grew)
 
 const _3D_CARD_DISPLAYER = preload(\"uid://c20iy7oe3abxs\")
-const _CARD_STACK_NODE_NAME := \"CardStack\"
 const _CARD_VERTICAL_OFFSET := 0.01
+
+var _top_card_tween: Tween
 
 func _enter_tree() -> void:
 	_rebuild_pile()
 
-func _rebuild_pile() -> void:
+func _rebuild_pile(animate_new_card: bool = false) -> void:
 	if not is_inside_tree():
 		return
-	
+
 	if pile_size > get_child_count():
 		for index in range(get_child_count(), pile_size):
 			var displayer := _3D_CARD_DISPLAYER.instantiate() as Node3D
@@ -35,26 +40,45 @@ func _rebuild_pile() -> void:
 				continue
 
 			displayer.name = \"3DCardDisplayer%s\" % index
-			displayer.transform = get_transform_for_card(index);
+			displayer.transform = get_transform_for_card(index)
 			if Engine.is_editor_hint():
-				displayer.owner = get_tree().edited_scene_root	
+				displayer.owner = get_tree().edited_scene_root
 			add_child(displayer)
-	
+
 	for child_idx in range(get_child_count()):
 		var displayer := get_child(child_idx)
 		if not is_instance_valid(displayer):
 			return
-		
+
 		if child_idx >= pile_size:
 			displayer.queue_free()
-			
-		displayer.card = top_card if child_idx == pile_size - 1 else middle_card
-		
+			continue
 
-func get_transform_for_card(index:int) -> Transform3D:
-	return Transform3D.IDENTITY.translated(Vector3(randf_range(-0.01, 0.01), randf_range(-0.01, 0.01), _CARD_VERTICAL_OFFSET * index)).rotated(Vector3.FORWARD, randf_range(-PI*0.05, PI*0.05))
+		displayer.card = top_card if child_idx == pile_size - 1 else middle_card
+
+	if animate_new_card and pile_size > 0 and pile_size <= get_child_count():
+		var top_displayer := get_child(pile_size - 1) as Node3D
+		if top_displayer != null:
+			_tween_card_in(top_displayer, get_transform_for_card(pile_size - 1))
+
+
+func _tween_card_in(displayer: Node3D, rest: Transform3D) -> void:
+	if _top_card_tween != null and _top_card_tween.is_valid():
+		_top_card_tween.kill()
+	displayer.transform = rest
+	displayer.position += Vector3(0.0, TWEEN_RAISE, 0.0)
+	displayer.scale = Vector3(0.88, 0.88, 0.88)
+	_top_card_tween = create_tween()
+	_top_card_tween.set_parallel(true)
+	_top_card_tween.set_trans(Tween.TRANS_CUBIC)
+	_top_card_tween.set_ease(Tween.EASE_OUT)
+	_top_card_tween.tween_property(displayer, \"position\", rest.origin, TWEEN_DURATION)
+	_top_card_tween.tween_property(displayer, \"scale\", Vector3.ONE, TWEEN_DURATION)
+
+
+func get_transform_for_card(index: int) -> Transform3D:
+	return Transform3D.IDENTITY.translated(Vector3(randf_range(-0.01, 0.01), randf_range(-0.01, 0.01), _CARD_VERTICAL_OFFSET * index)).rotated(Vector3.FORWARD, 0 if index == 0 else randf_range(-PI*0.05, PI*0.05))
 "
 
 [node name="Deck" type="Node3D" unique_id=1703109956]
 script = SubResource("GDScript_3s0qg")
-pile_size = 0
