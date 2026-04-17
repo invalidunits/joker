@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://dl77q1ufi8xlv" path="res://GUI/gui/Deck.tscn" id="1_d2bvn"]
 [ext_resource type="Script" uid="uid://brhe14r13f4vc" path="res://Game/Cards/numeric_card.gd" id="2_3s0qg"]
 [ext_resource type="Script" uid="uid://yr2aj74dgjnx" path="res://Game/Cards/card_back.gd" id="2_nusuo"]
+[ext_resource type="Shader" uid="uid://dl3sukebvsob2" path="res://new_shader.gdshader" id="4_sjlrx"]
 
 [sub_resource type="Resource" id="Resource_sjlrx"]
 script = ExtResource("2_nusuo")
@@ -28,6 +29,26 @@ metadata/_custom_type_script = "uid://yr2aj74dgjnx"
 [sub_resource type="Resource" id="Resource_esak6"]
 script = ExtResource("2_nusuo")
 metadata/_custom_type_script = "uid://yr2aj74dgjnx"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x7pw1"]
+render_priority = 0
+shader = ExtResource("4_sjlrx")
+shader_parameter/detail_strength = 3.0
+shader_parameter/scroll_speed = 1.2
+shader_parameter/fire_height = 1.0
+shader_parameter/fire_shape = 1.5
+shader_parameter/fire_thickness = 0.55
+shader_parameter/fire_sharpness = 1.0
+shader_parameter/intensity = 1.0
+shader_parameter/noise_octaves = 6
+shader_parameter/noise_lacunarity = 3.0
+shader_parameter/noise_gain = 0.5
+shader_parameter/noise_amplitude = 1.0
+shader_parameter/noise_frequency = 1.5
+
+[sub_resource type="QuadMesh" id="QuadMesh_0k6xl"]
+material = SubResource("ShaderMaterial_x7pw1")
+center_offset = Vector3(0, 0.5, 0)
 
 [node name="PlayerTable" type="Node3D" unique_id=129488746]
 
@@ -55,3 +76,7 @@ middle_card = SubResource("Resource_nusuo")
 transform = Transform3D(0.18223552, -0.98325485, -4.2979433e-08, 0, -4.371138e-08, 0.9999999, -0.98325485, -0.1822355, -7.965767e-09, 0.21155763, 0.0154079795, 0.023729146)
 middle_card = SubResource("Resource_esak6")
 pile_size = 26
+
+[node name="MPlaceFire" type="MeshInstance3D" parent="." unique_id=541659]
+transform = Transform3D(0, 0, 0, 0, 1, 0, 0, 0, 1, -0.039414465, -0.0024255514, 0.5694518)
+mesh = SubResource("QuadMesh_0k6xl")

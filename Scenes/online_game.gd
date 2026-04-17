@@ -7,6 +7,10 @@ const CARD_BACK_SCRIPT = preload("res://Game/Cards/card_back.gd")
 const CARD_LIST_OFFSET_META_KEY := "cardListOffset"
 const PRE_ROUND_REVEAL_SECONDS := 1.5
 const PRE_ROUND_CAPTURE_TWEEN_SECONDS := 0.42
+const JOKER_BURN_FIRE_GROW_SECONDS := 0.16
+const JOKER_BURN_FIRE_SHRINK_SECONDS := 0.32
+const JOKER_BURN_FIRE_MIN_SCALE := Vector3(0.001, 0.001, 0.001)
+const JOKER_BURN_FIRE_MAX_SCALE := Vector3(1.0, 1.0, 1.0)
 
 @export var backend_base_url: String = ""
 @export var match_id: String = ""
@@ -53,6 +57,7 @@ func _ready() -> void:
 	_card_selector.selecting = false
 	_clear_sample_hand()
 	_opponent_card_list.selecting = false
+	_set_joker_fire_scale(JOKER_BURN_FIRE_MIN_SCALE)
 	_load_match_session()
 	if backend_base_url.is_empty() or match_id.is_empty():
 		_show_connection_error("Missing matchmaking session")
@@ -186,7 +191,7 @@ func _handle_hand(message: Dictionary) -> void:
 	_render_opponent_hand(int(message.get("opponentHandLen", 0)))
 	_set_status("Hand updated", "Deck remaining: %s" % str(int(message.get("decklen", 0))))
 
-	
+
 func _handle_turn_request(message: Dictionary) -> void:
 	_current_turn = int(message.get("turn", _current_turn))
 	_awaiting_turn = true
@@ -262,20 +267,6 @@ func _handle_war_reveal(message: Dictionary) -> void:
 		place.middle_card = _make_card_resource(card_value)
 
 
-	_current_turn = int(message.get("turn", _current_turn))
-	_awaiting_turn = true
-	_clear_played_cards()
-	_card_list.selecting = true
-	_set_hand_interactable(true)
-	var first_player = message.get("firstPlayer", null)
-	if first_player == null:
-		_set_status("Choose a card", "Turn %s" % str(_current_turn))
-	elif int(first_player) == _player_index:
-		_set_status("Play first", "Turn %s" % str(_current_turn))
-	else:
-		_set_status("Waiting for opponent", "Turn %s" % str(_current_turn))
-
-
 func _handle_opponent_played(message: Dictionary) -> void:
 	var player := int(message.get("player", -1))
 	if _player_index >= 0 and player != _player_index:
@@ -298,9 +289,12 @@ func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
 	_card_list.selecting = false
 	_hide_choose_top_five()
 	_card_selector.selecting = false
-	var winner := int(message.get("winner", -1))
+	
+	var winner = message.get("winner", -1)
+	if winner == null:
+		winner = -1
+	
 	await _play_pre_round_capture_sequence(winner, not is_joker_burn)
-
 	var round_data = message.get("round", {})
 	if typeof(round_data) == TYPE_DICTIONARY:
 		var played = round_data.get("Played", [])
@@ -316,9 +310,6 @@ func _handle_round_result(message: Dictionary, is_joker_burn: bool) -> void:
 		_set_deck_size(_their_table, their_total)
 		_detail_label.text = "Cards remaining - You: %s, Opponent: %s" % [my_total, their_total]
 
-	if is_joker_burn:
-		_set_status("Round burned", "A joker removed the pile")
-		return
 
 	if winner == _player_index:
 		_set_status("Round won", _detail_label.text)
@@ -569,10 +560,56 @@ func _table_for_backend_player(player: int) -> Node3D:
 func _play_pre_round_capture_sequence(winner: int, capture_to_deck: bool) -> void:
 	_camera_animator.looking_at_table.append(self)
 	await get_tree().create_timer(PRE_ROUND_REVEAL_SECONDS).timeout
-	if not capture_to_deck or winner < 0:
-		return
-	await _tween_played_cards_to_winner_deck(winner)
+	
+	if capture_to_deck and winner >= 0:
+		await _tween_played_cards_to_winner_deck(winner)
+	else:
+		await _play_joker_burn_sequence()
 	_camera_animator.looking_at_table.erase(self)
+
+
+func _fire_node_for_table(table: Node3D) -> Node3D:
+	if table == null:
+		return null
+	var fire := table.get_node_or_null("MPlaceFire") as Node3D
+	if fire != null:
+		return fire
+	return table.get_node_or_null("BurnMPlace") as Node3D
+
+
+func _set_joker_fire_scale(scale_value: Vector3) -> void:
+	for table in [_my_table, _their_table]:
+		var fire := _fire_node_for_table(table)
+		if fire != null:
+			fire.scale = scale_value
+
+
+func _play_joker_burn_sequence() -> void:
+	var fires: Array[Node3D] = []
+	for table in [_my_table, _their_table]:
+		var fire := _fire_node_for_table(table)
+		if fire != null:
+			fire.scale = JOKER_BURN_FIRE_MIN_SCALE
+			fires.append(fire)
+
+	if fires.is_empty():
+		return
+
+	var grow_tween := create_tween()
+	grow_tween.set_parallel(true)
+	grow_tween.set_trans(Tween.TRANS_BACK)
+	grow_tween.set_ease(Tween.EASE_OUT)
+	for fire in fires:
+		grow_tween.tween_property(fire, "scale", JOKER_BURN_FIRE_MAX_SCALE, JOKER_BURN_FIRE_GROW_SECONDS)
+	await grow_tween.finished
+
+	var shrink_tween := create_tween()
+	shrink_tween.set_parallel(true)
+	shrink_tween.set_trans(Tween.TRANS_CUBIC)
+	shrink_tween.set_ease(Tween.EASE_IN)
+	for fire in fires:
+		shrink_tween.tween_property(fire, "scale", JOKER_BURN_FIRE_MIN_SCALE, JOKER_BURN_FIRE_SHRINK_SECONDS)
+	await shrink_tween.finished
 
 
 func _tween_played_cards_to_winner_deck(winner: int) -> void:

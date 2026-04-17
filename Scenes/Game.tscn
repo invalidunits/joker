@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bnyckbligu2p3"]
 
 [ext_resource type="PackedScene" uid="uid://cy028omhe3ahx" path="res://GUI/gui/OpponentCardGraphics.tscn" id="1_b2bpf"]
+[ext_resource type="PackedScene" uid="uid://dwthm74umpu4" path="res://Scenes/Table.tscn" id="2_2irst"]
 [ext_resource type="PackedScene" uid="uid://cmttygqhd40vk" path="res://GUI/gui/CardDisplayer.tscn" id="2_7lihs"]
 [ext_resource type="Script" uid="uid://bthcwudf3j5yt" path="res://GUI/gui/CardListContainer.gd" id="2_fgofq"]
 [ext_resource type="Script" uid="uid://ds365012jq1li" path="res://GUI/gui/card_list.gd" id="3_7lihs"]
@@ -173,31 +174,8 @@ transform = Transform3D(1, 0, 0, 0, 0.95041263, 0.31099162, 0, -0.31099162, 0.95
 [node name="Camera3D" type="Camera3D" parent="Node3D/Node3D" unique_id=1975208108]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.306488)
 
-[node name="CSGCylinder3D" type="CSGCylinder3D" parent="Node3D" unique_id=341082384]
+[node name="CSGCylinder3D" parent="Node3D" unique_id=2011274337 instance=ExtResource("2_2irst")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08683109, 0)
-radius = 1.4448242
-height = 0.17211914
-sides = 16
-
-[node name="CSGBox3D3" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1142756905]
-transform = Transform3D(-4.371139e-08, -0.29810798, 0.95453215, 0, 0.95453215, 0.29810798, -1, 1.3030713e-08, -4.1723926e-08, 0.56451976, -1.3138943, -2.4675943e-08)
-size = Vector3(0.3, 1.8468852, 0.3)
-
-[node name="CSGBox3D4" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=1079780735]
-transform = Transform3D(-1, -2.6061427e-08, 8.344785e-08, 0, 0.95453215, 0.29810798, -8.742278e-08, 0.29810798, -0.95453215, 4.9351886e-08, -1.3138943, -0.56451976)
-size = Vector3(0.3, 1.8468852, 0.3)
-
-[node name="CSGBox3D5" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=430994871]
-transform = Transform3D(1.3113416e-07, 0.29810795, -0.9545321, 0, 0.95453215, 0.29810798, 0.99999994, -3.9092136e-08, 1.2517177e-07, -0.5645197, -1.3138943, 7.4027824e-08)
-size = Vector3(0.3, 1.8468852, 0.3)
-
-[node name="CSGBox3D2" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=321785384]
-transform = Transform3D(1, 0, 0, 0, 0.95453215, 0.29810798, 0, -0.29810798, 0.95453215, 0, -1.3138943, 0.56451976)
-size = Vector3(0.3, 1.8468852, 0.3)
-
-[node name="CSGBox3D" type="CSGBox3D" parent="Node3D/CSGCylinder3D" unique_id=848710243]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22261894, 0)
-size = Vector3(1, 0.60791016, 1)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D" unique_id=1299417726]
 environment = SubResource("Environment_7lihs")
