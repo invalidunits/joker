@@ -6,8 +6,9 @@ Joker is a two-player card game built in Godot. It starts from the core idea of 
 
 This repository contains the Godot client project. In the current workspace, the web backend lives alongside it in the sibling folder `WarButBetterBackend` and serves the exported Godot web build.
 
-**Play:** joker.afkpals.net
-**Backend:** https://github.com/invalidunits/WarButBetterBackend
+[![Play](https://img.shields.io/badge/Play-joker.afkpals.net-1f6feb?style=for-the-badge)](https://joker.afkpals.net)
+[![Backend](https://img.shields.io/badge/Backend-GitHub-24292f?style=for-the-badge&logo=github)](https://github.com/invalidunits/WarButBetterBackend)
+[![Demo%20Video](https://img.shields.io/badge/Demo%20Video-YouTube-ff0000?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=BtAZwHTn7L8)
 
 ## Overview
 
