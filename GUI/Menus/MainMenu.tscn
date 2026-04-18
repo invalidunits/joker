@@ -7,13 +7,27 @@
 script/source = "@tool
 extends Node
 
+const OnlineMatchSession = preload(\"res://Scenes/online_match_session.gd\")
+
+@export_file(\"*.tscn\") var online_scene_path: String = \"res://Scenes/Online.tscn\"
+var _auto_join_started := false
+
 
 @export var selected_menu:int = 0:
 	set(x):
 		selected_menu = clampi(x, 0, get_child_count() - 1)
 func _ready() -> void:
 	if not Engine.is_editor_hint():
+		OnlineMatchSession.apply_runtime_overrides()
+		if OnlineMatchSession.has_match() and ResourceLoader.exists(online_scene_path) and not _auto_join_started:
+			_auto_join_started = true
+			call_deferred(\"_open_online_scene\")
+			return
 		selected_menu = 0
+
+func _open_online_scene() -> void:
+	if get_tree() != null:
+		get_tree().change_scene_to_file(online_scene_path)
 
 func _process(_delta: float) -> void:
 	for i in range(get_child_count()):
@@ -48,6 +62,12 @@ var _http_request: HTTPRequest
 @onready var dots_animation_player: AnimationPlayer = $VBoxContainer/HSplitContainer2/Dots/DotsAnimationPlayer
 var _working: bool = false
 @onready var waiting: HSplitContainer = $VBoxContainer/Waiting
+
+
+func _ready() -> void:
+	OnlineMatchSession.apply_runtime_overrides(backend_base_url)
+	if not OnlineMatchSession.backend_base_url.is_empty():
+		backend_base_url = OnlineMatchSession.backend_base_url
 
 
 func _on_visibility_changed() -> void:
@@ -250,6 +270,7 @@ process_mode = 4
 visible = false
 follow_viewport_enabled = true
 script = SubResource("GDScript_yk3ul")
+backend_base_url = "https://localhost:5001"
 waiting_for_time = NodePath("VBoxContainer/Waiting/Waiting For_2")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SubMenus/Waiting For Match" unique_id=1670790649]

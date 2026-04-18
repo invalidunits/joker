@@ -95,6 +95,7 @@ func _exit_tree() -> void:
 
 
 func _load_match_session() -> void:
+	MatchSessionState.apply_runtime_overrides(backend_base_url, match_id)
 	if backend_base_url.is_empty():
 		backend_base_url = MatchSessionState.backend_base_url
 	if match_id.is_empty():
