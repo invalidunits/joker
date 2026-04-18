@@ -19,17 +19,17 @@ etc).
 ## 3. Work Division & Contribution Report
 | Task / Module | Assigned Member (Plan) | Actual Contribution (Final) |
 | :--- | :--- | :--- |
-| **Multi-threaded Server** | Noah Hewitt | |
-| **Socket Networking** | Noah Hewitt | |
-| **Game Implementation** | Dylan Reid | |
-| **GUI Implementation** | Ngoc Kieu Minh Do | |
-| **Persistence (File I/O)** | Ngoc Kieu Minh Do | |
-| **UX/Sound Effects** | Noah Hewitt | |
-| **Documentation/README** | Dylan Reid | |
+| **Multi-threaded Server** | Noah Hewitt | Noah Hewitt |
+| **Socket Networking** | Noah Hewitt | Noah Hewitt |
+| **Game Implementation** | Dylan Reid | Dylan Reid |
+| **GUI Implementation** | Ngoc Kieu Minh Do | Ngoc Kieu Minh Do |
+| **Persistence (File I/O)** | Ngoc Kieu Minh Do | Ngoc Kieu Minh Do |
+| **UX/Sound Effects** | Noah Hewitt | Noah Hewitt |
+| **Documentation/README** | Dylan Reid | Dylan Reid |
 
 
 ## 4. Final Contribution Status (Tag one at Final Submission)
 At the end of the project, the team must agree on one of the following tags:
-* **[ ] (1) EVEN CONTRIBUTION:** All members met expectations from the original
+* **[ 1 ] (1) EVEN CONTRIBUTION:** All members met expectations from the original
 charter.
 * **[ ] (2) UNEVEN CONTRIBUTION:** If uneven contribution is expected 
