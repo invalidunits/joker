@@ -23,7 +23,12 @@ func _ready() -> void:
 			_auto_join_started = true
 			call_deferred(\"_open_online_scene\")
 			return
-		selected_menu = 0
+		if OnlineMatchSession.has_queue_request():
+			selected_menu = 1
+			$\"Waiting For Match/VBoxContainer/MarginContainer/StopWaiting\".visible = false;
+			$\"Waiting For Match/VBoxContainer/MarginContainer/StopWaiting\".process_mode = ProcessMode.PROCESS_MODE_DISABLED;
+		else:
+			selected_menu = 0
 
 func _open_online_scene() -> void:
 	if get_tree() != null:
@@ -41,6 +46,7 @@ func _on_quit_button_pressed() -> void:
 	get_tree().quit(0)
 
 func _on_stop_waiting_pressed() -> void:
+	OnlineMatchSession.clear_match()
 	selected_menu = 0
 "
 
@@ -207,9 +213,12 @@ grow_vertical = 2
 theme = ExtResource("2_be2jq")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=918436055]
-layout_mode = 0
-offset_right = 1281.0
-offset_bottom = 719.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="Label" type="Label" parent="." unique_id=716157476]
@@ -270,7 +279,7 @@ process_mode = 4
 visible = false
 follow_viewport_enabled = true
 script = SubResource("GDScript_yk3ul")
-backend_base_url = "https://localhost:5001"
+backend_base_url = "http://localhost:5000"
 waiting_for_time = NodePath("VBoxContainer/Waiting/Waiting For_2")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SubMenus/Waiting For Match" unique_id=1670790649]

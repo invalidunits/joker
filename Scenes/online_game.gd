@@ -203,7 +203,14 @@ func _handle_hand(message: Dictionary) -> void:
 	_player_index = int(message.get("player", _player_index))
 	_current_hand = Marshalls.base64_to_raw(str(message.get("hand", "")))
 	_render_hand()
-	_render_opponent_hand(int(message.get("opponentHandLen", 0)))
+	
+	var my_deck_len := int(message.get("decklen", 0))
+	var opponent_hand_len := int(message.get("opponentHandLen", 0))
+	var opponent_deck_len := int(message.get("opponentDeckLen", 0))
+
+	_render_opponent_hand(opponent_hand_len)
+	_set_deck_size(_my_table, my_deck_len)
+	_set_deck_size(_their_table, opponent_deck_len)
 
 
 func _handle_turn_request(message: Dictionary) -> void:

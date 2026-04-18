@@ -4,6 +4,7 @@ extends RefCounted
 
 static var backend_base_url: String = ""
 static var match_id: String = ""
+static var queue_requested: bool = false
 
 
 static func apply_runtime_overrides(default_backend_url: String = "", default_match_id: String = "") -> void:
@@ -15,31 +16,48 @@ static func apply_runtime_overrides(default_backend_url: String = "", default_ma
 	var config := _parse_runtime_config()
 	var next_backend := str(config.get("backend", "")).strip_edges()
 	var next_match := str(config.get("match", "")).strip_edges()
+	var next_queue := str(config.get("queue", "")).strip_edges().to_lower()
 
 	if not next_backend.is_empty():
 		backend_base_url = next_backend
 	if not next_match.is_empty():
 		match_id = next_match
+		queue_requested = false
+	elif next_queue in ["1", "true", "yes", "on"]:
+		queue_requested = true
 
 
 static func store_match(base_url: String, next_match_id: String) -> void:
 	backend_base_url = base_url
 	match_id = next_match_id
+	queue_requested = false
+
+
+static func store_queue(base_url: String) -> void:
+	backend_base_url = base_url
+	match_id = ""
+	queue_requested = true
 
 
 static func clear_match() -> void:
 	backend_base_url = ""
 	match_id = ""
+	queue_requested = false
 
 
 static func has_match() -> bool:
 	return not backend_base_url.is_empty() and not match_id.is_empty()
 
 
+static func has_queue_request() -> bool:
+	return not backend_base_url.is_empty() and match_id.is_empty() and queue_requested
+
+
 static func _parse_runtime_config() -> Dictionary:
 	var config := {
 		"backend": "",
 		"match": "",
+		"queue": "",
 	}
 
 	_parse_command_line_args(config)
@@ -84,6 +102,8 @@ static func _apply_config_key(config: Dictionary, key: String, value: String) ->
 			config["backend"] = normalized_value
 		"match", "match_id":
 			config["match"] = normalized_value
+		"queue", "auto_queue":
+			config["queue"] = normalized_value
 
 
 static func _parse_web_query_params(config: Dictionary) -> void:
@@ -92,7 +112,7 @@ static func _parse_web_query_params(config: Dictionary) -> void:
 	if not Engine.has_singleton("JavaScriptBridge"):
 		return
 
-	var raw_json: Variant = JavaScriptBridge.eval("(function(){const p=new URLSearchParams(window.location.search); return JSON.stringify({backend:p.get('backend')||'',match:p.get('match')||''});})()", true)
+	var raw_json: Variant = JavaScriptBridge.eval("(function(){const p=new URLSearchParams(window.location.search); return JSON.stringify({backend:p.get('backend')||'',match:p.get('match')||'',queue:p.get('queue')||''});})()", true)
 	if typeof(raw_json) != TYPE_STRING:
 		return
 
@@ -105,3 +125,4 @@ static func _parse_web_query_params(config: Dictionary) -> void:
 	var data: Dictionary = parser.data
 	_apply_config_key(config, "backend", str(data.get("backend", "")))
 	_apply_config_key(config, "match", str(data.get("match", "")))
+	_apply_config_key(config, "queue", str(data.get("queue", "")))

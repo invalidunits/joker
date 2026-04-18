@@ -1,2 +1,3 @@
 res://GUI/Menus/MainMenu.tscn
 res://new_shader.gdshader
+res://Scenes/online_game.gd
